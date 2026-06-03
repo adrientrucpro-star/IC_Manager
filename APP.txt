@@ -1,126 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta http-equiv="x-ua-compatible" content="IE=Edge">
+    <meta http-equiv="x-ua-compatible" content="IE=9">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>ERP IC A350 - Pilotage SAP PEA</title>
-    <hta:application id="oApp" applicationname="A350Erp" border="thin" maximizebutton="yes" minimizebutton="yes" scroll="no" windowstate="maximize" />
+    <hta:application id="oApp" applicationname="A350Erp" border="thin" maximizebutton="yes" minimizebutton="yes" scroll="no" windowstate="normal" />
 
     <style>
         /* --- STYLE GENERAL --- */
         * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f0f4f7; color: #1e293b; margin: 0; padding: 0; height: 100vh; overflow: hidden; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; height: 100vh; overflow: hidden; }
 
         /* --- ECRAN DE CONNEXION --- */
-        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #002d45; z-index: 9999; }
+        #loginScreen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #0f172a; z-index: 9999; }
         .login-box { position: absolute; top: 50%; left: 50%; width: 360px; height: auto; padding-bottom: 50px; margin-left: -180px; margin-top: -190px; background: #ffffff; border-radius: 8px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); text-align: center; padding: 40px 30px; }
-        .login-box h1 { color: #006698; font-size: 24px; margin-top: 0; margin-bottom: 5px; letter-spacing: 1px; }
+        .login-box h1 { color: #38bdf8; font-size: 24px; margin-top: 0; margin-bottom: 5px; letter-spacing: 1px; }
 
         /* --- SIDEBAR --- */
-        #sidebar { width: 260px; background-color: #002d45; height: 100vh; color: #f8fafc; position: fixed; left: 0; top: 0; z-index: 100; box-shadow: 3px 0 10px rgba(0,0,0,0.25); }
-        #sidebar-header { border-bottom: 1px solid rgba(255,255,255,0.08); }
-        .nav-item { padding: 16px 25px; cursor: pointer; color: #8fb8cc; font-size: 14px; font-weight: 500; display: block; border-left: 3px solid transparent; }
-        .nav-item:hover { background-color: rgba(0,102,152,0.25); color: #ffffff; border-left-color: #006698; }
-        .nav-item.active { background-color: #006698; color: #ffffff; font-weight: 600; border-left-color: #E4342D; }
-        #sidebar-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 18px 20px; font-size: 13px; color: #7aafc7; text-align: center; border-top: 1px solid rgba(255,255,255,0.08); font-weight: 500; }
+        #sidebar { width: 260px; background-color: #0f172a; height: 100vh; color: #f8fafc; position: fixed; left: 0; top: 0; z-index: 100; }
+        #sidebar-header { padding: 30px 20px; border-bottom: 1px solid #1e293b; text-align: center; }
+        #sidebar-header h1 { font-size: 18px; color: #38bdf8; margin: 0; letter-spacing: 1px; font-weight: 700; }
+        .nav-item { padding: 18px 25px; cursor: pointer; color: #94a3b8; font-size: 14px; font-weight: 500; display: block; }
+        .nav-item:hover { background-color: #1e293b; color: #fff; }
+        .nav-item.active { background-color: #38bdf8; color: #000; font-weight: 600; }
+        #sidebar-footer { position: absolute; bottom: 0; left: 0; width: 100%; padding: 20px; font-size: 10px; color: #475569; text-align: center; border-top: 1px solid #1e293b; }
 
         /* --- CONTENU --- */
-        #content { margin-left: 260px; padding: 25px 35px; padding-bottom: 25px; overflow-y: auto; display: block; }
+        #content { margin-left: 260px; padding: 40px; padding-bottom: 60px; overflow-y: auto; height: 100vh; display: block; }
         .page { display: none; }
         .page.active { display: block; }
 
-        h2 { font-size: 22px; margin-top: 0; color: #002d45; margin-bottom: 28px; font-weight: 700; }
-        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 4px rgba(0,45,69,0.08); border: 1px solid #dde6ec; margin-bottom: 30px; }
-
+        h2 { font-size: 26px; margin-top: 0; color: #0f172a; margin-bottom: 25px; font-weight: 700; }
+        .card { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); border: 1px solid #e2e8f0; margin-bottom: 30px; }
+        
         /* --- STYLE TABLEUR EXCEL --- */
-        table.excel-table { width: 100%; border-collapse: collapse; background: white; margin-top: 15px; border: 2px solid #c5d5de; table-layout: fixed; }
-        table.excel-table th { background-color: #dde6ec; color: #334155; font-weight: 600; border: 1px solid #94a3b8; padding: 10px 5px; font-size: 13px; text-align: left; overflow: hidden; text-overflow: ellipsis; }
-        table.excel-table td { border: 1px solid #c5d5de; padding: 0; font-size: 13px; color: #334155; background-color: #ffffff; vertical-align: middle; overflow: hidden; transition: background-color 0.3s; }
-
+        table.excel-table { width: 100%; border-collapse: collapse; background: white; margin-top: 15px; border: 2px solid #cbd5e1; table-layout: fixed; }
+        table.excel-table th { background-color: #e2e8f0; color: #334155; font-weight: 600; border: 1px solid #94a3b8; padding: 10px 5px; font-size: 13px; text-align: left; overflow: hidden; text-overflow: ellipsis; }
+        table.excel-table td { border: 1px solid #cbd5e1; padding: 0; font-size: 13px; color: #334155; background-color: #ffffff; vertical-align: middle; overflow: hidden; transition: background-color 0.3s; }
+        
         .excel-input { width: 100%; height: 100%; padding: 10px 12px; border: none !important; background: transparent !important; font-family: inherit; font-size: 13px; color: #334155; cursor: text; box-sizing: border-box; }
-        .excel-input:disabled { background: transparent !important; color: #334155 !important; cursor: default !important; opacity: 1 !important; -webkit-text-fill-color: #334155 !important; }
-        input.excel-input:disabled { background: transparent !important; }
-        select.excel-input:disabled { background: transparent !important; color: #334155 !important; -webkit-text-fill-color: #334155 !important; }
-        input[type="text"].excel-input:focus { background-color: #fffbeb !important; outline: 2px solid #006698 !important; outline-offset: -2px; cursor: text; }
-        input::-ms-clear { display: none; width: 0; height: 0; }
-        select.excel-input, select.custom-select-small { appearance: none; -webkit-appearance: none; -moz-appearance: none; background-image: none !important; background-color: transparent !important; padding-right: 12px; }
-        select.excel-input::-ms-expand, select.custom-select-small::-ms-expand { display: none !important; }
-        select.excel-input::-webkit-scrollbar, select.custom-select-small::-webkit-scrollbar { display: none; }
-        select.excel-input:focus, select.custom-select-small:focus { background-color: #ffffff !important; outline: 2px solid #006698 !important; outline-offset: -2px; cursor: pointer; }
-
+        input[type="text"].excel-input:focus { background-color: #fffbeb !important; outline: 2px solid #38bdf8 !important; outline-offset: -2px; cursor: text; }
+        select.excel-input:focus { background-color: #ffffff !important; outline: 2px solid #38bdf8 !important; outline-offset: -2px; cursor: pointer; }
+        
         .ic-cell { transition: background-color 0.2s ease; }
-        .ic-cell:hover { background-color: #ddeef5 !important; }
+        .ic-cell:hover { background-color: #e0f2fe !important; }
 
-        select.custom-select { border: 1px solid #c5d5de; padding: 8px 10px; border-radius: 6px; width: 100%; font-size: 14px; background-color: #fff; color: #1e293b; font-family: inherit; height: 38px; box-sizing: border-box; cursor: pointer; transition: border-color 0.15s ease-in-out; }
-        select.custom-select:focus { border-color: #006698; outline: none; }
-        select.custom-select-small { font-size: 13px; font-family: inherit; color: #334155; height: 38px; padding: 6px 8px; border: none; border-radius: 0; background-color: transparent; appearance: none !important; -webkit-appearance: none !important; -moz-appearance: none !important; background-image: none !important; padding-right: 0 !important; }
-        select.custom-select-small:focus { outline: none !important; box-shadow: none !important; background-color: transparent !important; -webkit-tap-highlight-color: transparent !important; }
-        select.custom-select-small:active { outline: none !important; box-shadow: none !important; background-color: transparent !important; }
-        table.excel-table tr:hover td { background-color: #f5f9fb; }
+        select.custom-select { border: 1px solid #cbd5e1; padding: 8px 10px; border-radius: 6px; width: 100%; font-size: 14px; background-color: #fff; color: #1e293b; font-family: inherit; height: 38px; box-sizing: border-box; cursor: pointer; transition: border-color 0.15s ease-in-out; }
+        select.custom-select:focus { border-color: #38bdf8; outline: none; }
+        select.custom-select-small { font-size: 13px; height: 38px; padding: 6px 8px; border: none; border-radius: 0; background-color: transparent; }
+        select.custom-select-small:focus { outline: none; background-color: #ffffff !important; }
+        table.excel-table tr:hover td { background-color: #f8fafc; }
 
-        /* BOUTONS */
+        /* BOUTONS ET ALIGNEMENT STRICT */
         .btn-toolbar, .btn-extract { font-weight: 600; font-size: 13px; height: 38px; line-height: 38px; padding: 0 20px; border: none; border-radius: 6px; cursor: pointer; color: white; display: inline-block; vertical-align: bottom; margin: 0; text-align: center; box-sizing: border-box; }
         .btn-add { background-color: #10b981; } .btn-add:hover { background-color: #059669; }
-        .btn-delete-mode { background-color: #E4342D; } .btn-delete-mode:hover { background-color: #c0251e; }
+        .btn-delete-mode { background-color: #ef4444; } .btn-delete-mode:hover { background-color: #dc2626; }
         .btn-cancel { background-color: #64748b; } .btn-cancel:hover { background-color: #475569; }
-        .btn-extract { background-color: #006698; width: auto; padding: 0 20px; } .btn-extract:hover { background-color: #004d73; }
+        .btn-extract { background-color: #0284c7; width: auto; padding: 0 20px; } .btn-extract:hover { background-color: #0369a1; }
         .btn-disabled { background-color: #94a3b8 !important; cursor: wait !important; color: #f1f5f9 !important; }
 
         /* --- DESIGN FORMULAIRE --- */
-        .form-block { display: none; margin-bottom: 20px; background-color: #f0f4f7; padding: 15px; border-radius: 6px; border: 1px solid #c5d5de; }
+        .form-block { display: none; margin-bottom: 20px; background-color: #f1f5f9; padding: 15px; border-radius: 6px; border: 1px solid #cbd5e1; }
         table.form-block { width: 100%; border-collapse: collapse; }
         table.form-block td { padding: 5px 10px; vertical-align: bottom; border: none; }
         table.form-table label { font-size: 12px; font-weight: 600; color: #475569; display: block; margin-bottom: 5px; }
-        .form-table input[type="text"] { border: 1px solid #c5d5de; padding: 8px 12px; border-radius: 6px; width: 100%; font-size: 13px; background-color: #fff; color: #1e293b; font-family: inherit; height: 38px; box-sizing: border-box; transition: border-color 0.15s ease-in-out; }
-        .form-table input[type="text"]:focus { border-color: #006698; outline: none; background-color: #fffbeb !important; }
-
+        .form-table input[type="text"] { border: 1px solid #cbd5e1; padding: 8px 12px; border-radius: 6px; width: 100%; font-size: 13px; background-color: #fff; color: #1e293b; font-family: inherit; height: 38px; box-sizing: border-box; transition: border-color 0.15s ease-in-out; }
+        .form-table input[type="text"]:focus { border-color: #38bdf8; outline: none; background-color: #fffbeb !important; }
+        
         .radio-group { margin-top: 5px; }
-        .radio-pill { display: inline-block !important; background-color: #ffffff; border: 1px solid #c5d5de; border-radius: 6px; height: 38px; line-height: 24px; padding: 6px 12px; margin: 0 8px 0 0; cursor: pointer; font-size: 13px !important; font-weight: 500 !important; color: #334155 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); vertical-align: bottom; box-sizing: border-box; }
-        .radio-pill:hover { background-color: #f0f4f7; border-color: #006698; }
+        .radio-pill { display: inline-block !important; background-color: #ffffff; border: 1px solid #cbd5e1; border-radius: 6px; height: 38px; line-height: 24px; padding: 6px 12px; margin: 0 8px 0 0; cursor: pointer; font-size: 13px !important; font-weight: 500 !important; color: #334155 !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05); vertical-align: bottom; box-sizing: border-box; }
+        .radio-pill:hover { background-color: #f8fafc; border-color: #94a3b8; }
         .radio-pill input[type="radio"] { margin: 0 6px 0 0; vertical-align: middle; cursor: pointer; transform: scale(1.1); margin-top: -2px; width: auto !important; }
 
-        .input-date { border: 1px solid #c5d5de; padding: 8px 12px; height: 38px; border-radius: 6px; font-family: inherit; font-size: 14px; color: #1e293b; background-color: #fff; width: 100%; vertical-align: bottom; box-sizing: border-box; margin: 0; cursor: pointer; text-align: center; }
+        .input-date { border: 1px solid #cbd5e1; padding: 8px 12px; height: 38px; border-radius: 6px; font-family: inherit; font-size: 14px; color: #1e293b; background-color: #fff; width: 100%; vertical-align: bottom; box-sizing: border-box; margin: 0; cursor: pointer; text-align: center; }
         .col-select { text-align: center; width: 70px; }
         .chk-select { cursor: pointer; margin: 10px 0; }
         .col-poste-equipe { width: 50px !important; text-align: center; font-weight: bold; }
-
-        /* --- DASHBOARD --- */
-        .kpi-title { margin: 0 0 15px 0; color: #334155; font-size: 15px; font-weight: 600; letter-spacing: 0.5px; text-align: center; }
+        
+        /* --- DASHBOARD SPECIFIQUE --- */
+        .kpi-title { margin: 0 0 15px 0; color: #475569; font-size: 13px; letter-spacing: 1px; text-align: center; }
         .kpi-main-value { font-size: 42px; font-weight: 800; line-height: 1; text-align: center; }
         .kpi-sub-title { font-size: 11px; font-weight: 600; color: #64748b; margin-bottom: 3px; text-align: center; }
         .kpi-sub-value { font-size: 18px; font-weight: bold; text-align: center; }
-        .kpi-block { float: left; margin: 0 1%; background: #f0f4f7; border: 1px solid #dde6ec; border-radius: 6px; padding: 10px 5px; }
-        .kpi-block-op  { width: 31%; }
-        .kpi-block-iq  { width: 31%; }
-        .kpi-block-st  { width: 31%; }
-        .kpi-block-inp { width: 14%; }
-        .kpi-block-cre { width: 14%; }
-        .kpi-block-rlt { width: 14%; }
-        .kpi-block-acc { width: 14%; }
-        .kpi-block-sta { width: 14%; }
-        .kpi-block-qcl { width: 14%; }
-
-        .alert-item { padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 500; border-left: 4px solid #c5d5de; background: #f0f4f7; }
-        .alert-today { border-left-color: #E4342D; background: #fef2f2; color: #991b1b; }
+        
+        .alert-item { padding: 12px 15px; border-radius: 6px; margin-bottom: 10px; font-size: 13px; font-weight: 500; border-left: 4px solid #cbd5e1; background: #f8fafc; }
+        .alert-today { border-left-color: #ef4444; background: #fef2f2; color: #991b1b; }
         .alert-yesterday { border-left-color: #64748b; background: #f1f5f9; color: #334155; }
         .alert-tomorrow { border-left-color: #f59e0b; background: #fffbeb; color: #92400e; }
-
+        
         .msg-box { padding: 20px; border-radius: 6px; margin-top: 15px; font-size: 14px; }
         .msg-error { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; font-weight: bold; }
-        .msg-info { background-color: #ffffff; color: #64748b; border: 1px dashed #c5d5de; text-align: center; font-style: italic; }
+        .msg-info { background-color: #ffffff; color: #64748b; border: 1px dashed #cbd5e1; text-align: center; font-style: italic; }
 
         .spinner { border: 3px solid rgba(255, 255, 255, 0.3); border-top: 3px solid #ffffff; border-radius: 50%; width: 18px; height: 18px; animation: spin 1s linear infinite; display: inline-block; vertical-align: middle; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
-        .datepicker-popup { position: absolute; background: #fff; border: 1px solid #c5d5de; box-shadow: 0 4px 6px -1px rgba(0,45,69,0.12); border-radius: 6px; padding: 15px; z-index: 9999; width: 250px; }
-        .dp-header { text-align: center; margin-bottom: 15px; font-weight: bold; color: #002d45; font-size: 14px; }
-        .dp-header button { background: #f0f4f7; border: 1px solid #c5d5de; border-radius: 4px; cursor: pointer; padding: 2px 10px; font-weight: bold; }
-        .dp-header button:hover { background: #dde6ec; }
+        
+        .datepicker-popup { position: absolute; background: #fff; border: 1px solid #cbd5e1; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border-radius: 6px; padding: 15px; z-index: 9999; width: 250px; }
+        .dp-header { text-align: center; margin-bottom: 15px; font-weight: bold; color: #0f172a; font-size: 14px; }
+        .dp-header button { background: #f1f5f9; border: 1px solid #cbd5e1; border-radius: 4px; cursor: pointer; padding: 2px 10px; font-weight: bold; }
+        .dp-header button:hover { background: #e2e8f0; }
         .dp-header button.prev { float: left; } .dp-header button.next { float: right; }
         .dp-table { width: 100%; border-collapse: collapse; text-align: center; font-size: 13px; }
         .dp-table th { color: #64748b; font-weight: 600; padding-bottom: 8px; border: none; }
         .dp-table td { padding: 6px 0; cursor: pointer; border-radius: 4px; border: none !important; }
-        .dp-table td:hover { background-color: #006698; color: #fff; font-weight: bold; }
+        .dp-table td:hover { background-color: #38bdf8; color: #fff; font-weight: bold; }
     </style>
 
     <script language="VBScript">
@@ -135,14 +118,7 @@
         Const SAP_TAB_19 = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB19/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
         Const SAP_TAB_20 = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB20/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
 
-        Dim oSession
-
-        Function IsNumeric(val)
-            On Error Resume Next
-            Dim d: d = CDbl(val)
-            IsNumeric = (Err.Number = 0)
-            On Error GoTo 0
-        End Function
+        Dim oSession 
 
         Sub WriteLog(msg)
             On Error Resume Next
@@ -439,7 +415,7 @@
             
             oSession.FindById("wnd[0]/usr/cmbZONE").Key = "YES"
             oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
-            Call PauseVBS(1)
+            Call PauseVBS(0)
             
             Set tbar1 = oSession.FindById("wnd[0]/tbar[1]")
             If Not tbar1 Is Nothing Then
@@ -498,7 +474,7 @@
             
             oSession.FindById("wnd[0]/usr/cmbZONE").Key = "YES"
             oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
-            Call PauseVBS(1)
+            Call PauseVBS(0)
             
             Set tbar1 = oSession.FindById("wnd[0]/tbar[1]")
             If Not tbar1 Is Nothing Then
@@ -626,10 +602,6 @@
                             If strVacation = "Soir" Then
                                 If totalMins >= (14 * 60 + 45) And totalMins < (23 * 60 + 57) Then
                                     H1 = hPlus2
-                                ElseIf totalMins >= (23 * 60 + 57) Then
-                                    MsgBox "La vacation 'Soir' (fin à 00h00) est dépassée." & vbCrLf & "Impossible de générer une heure correcte pour le MSN " & msn & ".", 48, "Horaire incompatible"
-                                    VBS_CreerICs = "Annulé"
-                                    Exit Function
                                 End If
                             End If
                         End If
@@ -1044,120 +1016,9 @@
             
             VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
-    
-        ' ==================== WRAPPERS VBSCRIPT ====================
-        ' Permettent à JavaScript de communiquer avec VBScript
-        
-        Sub HandleExtractionRequest()
-            On Error Resume Next
-            Dim dateStart, dateEnd, resultHTML, resultElement
-            
-            dateStart = document.getElementById("vbs_param_dateStart").value
-            dateEnd = document.getElementById("vbs_param_dateEnd").value
-            
-            If dateStart = "" Or dateEnd = "" Then
-                Set resultElement = document.getElementById("resultatExtraction")
-                If Not resultElement Is Nothing Then
-                    resultElement.innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
-                End If
-                Exit Sub
-            End If
-            
-            resultHTML = VBS_LancerSAP(dateStart, dateEnd)
-            
-            If resultHTML <> "" Then
-                Set resultElement = document.getElementById("resultatExtraction")
-                If Not resultElement Is Nothing Then
-                    resultElement.innerHTML = resultHTML
-                End If
-            End If
-            
-            On Error GoTo 0
-        End Sub
-
-        Sub HandleCreationRequest()
-            On Error Resume Next
-            Dim dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex
-            Dim resultStr, tbody, cellDiv
-            dateStr = document.getElementById("vbs_param_date").value
-            vacation = document.getElementById("vbs_param_vacation").value
-            equipe = document.getElementById("vbs_param_equipe").value
-            dataStr = document.getElementById("vbs_param_data").value
-            opStr = document.getElementById("vbs_param_op").value
-            iqStr = document.getElementById("vbs_param_iq").value
-            stStr = document.getElementById("vbs_param_st").value
-            rowIndex = CInt(document.getElementById("vbs_param_rowIndex").value)
-            resultStr = VBS_CreerICs(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr)
-            Set tbody = document.getElementById("tableCreateBody")
-            If Not tbody Is Nothing And rowIndex >= 0 And rowIndex < tbody.rows.length Then
-                Set cellDiv = tbody.rows(rowIndex).cells(13)
-                If Not cellDiv Is Nothing Then
-                    If InStr(resultStr, "ERREUR") > 0 Or InStr(resultStr, "Annulé") > 0 Then
-                        cellDiv.innerHTML = "<span style='color:#b91c1c;'>" & resultStr & "</span>"
-                        tbody.rows(rowIndex).style.backgroundColor = "#fee2e2"
-                    Else
-                        cellDiv.innerHTML = resultStr
-                        tbody.rows(rowIndex).style.backgroundColor = "#dcfce7"
-                    End If
-                End If
-            End If
-            On Error GoTo 0
-        End Sub
-
-        Sub HandleActionRequest()
-            On Error Resume Next
-            Dim icNum, actionType, resultStr
-            icNum = document.getElementById("vbs_param_icNum").value
-            actionType = document.getElementById("vbs_param_action").value
-            If icNum = "" Or actionType = "" Then Exit Sub
-            resultStr = VBS_ExecuterActionSpecifique(icNum, actionType)
-            On Error GoTo 0
-        End Sub
-
-</script>
+    </script>
 
     <script language="javascript">
-
-    // ==================== WRAPPERS JAVASCRIPT ====================
-    // Permettent à JavaScript d'appeler les fonctions VBScript de façon sûre
-    
-    function callVBSExtraction(dateStart, dateEnd) {
-        try {
-            document.getElementById("vbs_param_dateStart").value = dateStart;
-            document.getElementById("vbs_param_dateEnd").value = dateEnd;
-            HandleExtractionRequest();
-        } catch(e) {
-            document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Erreur: " + e.message + "</div>";
-        }
-    }
-    
-    function callVBSCreation(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex) {
-        try {
-            document.getElementById("vbs_param_date").value = dateStr;
-            document.getElementById("vbs_param_vacation").value = vacation;
-            document.getElementById("vbs_param_equipe").value = equipe;
-            document.getElementById("vbs_param_data").value = dataStr;
-            document.getElementById("vbs_param_op").value = opStr;
-            document.getElementById("vbs_param_iq").value = iqStr;
-            document.getElementById("vbs_param_st").value = stStr;
-            document.getElementById("vbs_param_rowIndex").value = rowIndex;
-            HandleCreationRequest();
-        } catch(e) {
-            console.error("Erreur VBScript Creation: " + e.message);
-        }
-    }
-    
-    function callVBSAction(icNum, actionType) {
-        try {
-            document.getElementById("vbs_param_icNum").value = icNum;
-            document.getElementById("vbs_param_action").value = actionType;
-            HandleActionRequest();
-        } catch(e) {
-            console.error("Erreur VBScript Action: " + e.message);
-        }
-    }
-
-
         var VERSION_ACTUELLE = "8.3"; 
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/9158de12ec4159774acec4956728945e/raw/IcManager.txt";
         var URL_TELECHARGEMENT_APP = "https://drive.google.com/file/d/1mZaDZqVggQ82yAtysOg5CFScVBtdaTft/view?usp=drive_link";
@@ -1246,18 +1107,6 @@
             return str.replace(/^\s+|\s+$/g, '');
         }
 
-        function escapeHtml(text) {
-            if (!text) return "";
-            var div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
-
-        function formatDateToSAP(jsDateStr) {
-            if (!jsDateStr) return "";
-            return jsDateStr.replace(/\//g, '.');
-        }
-
         function getAppDataFilePath() {
             try {
                 var wsh = new ActiveXObject("WScript.Shell");
@@ -1277,7 +1126,8 @@
                     var file = fso.OpenTextFile(path, 1, false, -1);
                     var content = file.ReadAll(); file.Close();
                     if (NettoyerChaine(content) !== "") { 
-                                            var appData = JSON.parse(content);
+                        var sandboxFn = new Function("return " + content);
+                        var appData = sandboxFn();
                         personnelData = (appData.personnel && appData.personnel.length > 0) ? appData.personnel : [];
                         msnData = (appData.msn && appData.msn.length > 0) ? appData.msn : [];
                         document.getElementById("inputDateExtractStart").value = appData.lastExtractDateStart ? appData.lastExtractDateStart : defaultDate;
@@ -1302,23 +1152,25 @@
                 document.getElementById("inputDateExtractEnd").value = defaultDate;
                 document.getElementById("inputDateCreation").value = defaultDate;
             }
-            while (msnData.length < 20) { msnData.push({ msn: "", poste: "", dateSortie: "", valide: false }); }
-            if (msnData.length > 20) msnData.length = 20;
+            while (msnData.length < 12) { msnData.push({ msn: "", poste: "", dateSortie: "", valide: false }); }
+            if (msnData.length > 12) msnData.length = 12;
         }
 
         function SaveData() {
-            try {
-                var appData = {
-                    personnel: personnelData,
-                    msn: msnData,
-                    lastExtractDateStart: document.getElementById("inputDateExtractStart").value,
-                    lastExtractDateEnd: document.getElementById("inputDateExtractEnd").value,
-                    lastCreationDate: document.getElementById("inputDateCreation").value
-                };
-                var rawJson = JSON.stringify(appData);
+            try { 
+                var pairsPers = [];
+                for(var i=0; i<personnelData.length; i++) {
+                    pairsPers.push('{"nom":"'+personnelData[i].nom+'","prenom":"'+personnelData[i].prenom+'","poste":"'+personnelData[i].poste+'","equipe":"'+personnelData[i].equipe+'"}');
+                }
+                var pairsMsn = [];
+                for(var i=0; i<msnData.length; i++) {
+                    pairsMsn.push('{"msn":"'+msnData[i].msn+'","poste":"'+msnData[i].poste+'","dateSortie":"'+msnData[i].dateSortie+'","valide":'+msnData[i].valide+'}');
+                }
+                var rawJson = '{"personnel":['+pairsPers.join(',')+'],"msn":['+pairsMsn.join(',')+'],"lastExtractDateStart":"'+document.getElementById("inputDateExtractStart").value+'","lastExtractDateEnd":"'+document.getElementById("inputDateExtractEnd").value+'","lastCreationDate":"'+document.getElementById("inputDateCreation").value+'"}';
+                
                 var fso = new ActiveXObject("Scripting.FileSystemObject");
-                var file = fso.CreateTextFile(getAppDataFilePath(), true, true);
-                file.Write(rawJson); file.Close();
+                var file = fso.CreateTextFile(getAppDataFilePath(), true, true); 
+                file.Write(rawJson); file.Close(); 
             } catch (e) {}
         }
 
@@ -1431,84 +1283,30 @@
             document.getElementById("subIQ").innerText = countIQ;
             document.getElementById("subST").innerText = countST;
 
-            var today = new Date(); today.setHours(0,0,0,0);
-            var hier = new Date(today); hier.setDate(today.getDate()-1);
-            var demain = new Date(today); demain.setDate(today.getDate()+1);
-            var il_y_a_2j = new Date(today); il_y_a_2j.setDate(today.getDate()-2);
-            var semaine = new Date(today); semaine.setDate(today.getDate()+7);
-
-            function parseSAPDate(str) {
-                var p = str ? str.split(".") : [];
-                if (p.length !== 3) return null;
-                var d = new Date(parseInt(p[2],10), parseInt(p[1],10)-1, parseInt(p[0],10));
-                d.setHours(0,0,0,0);
-                return isNaN(d.getTime()) ? null : d;
-            }
-
-            var stats = { INP:0, ACC:0, STA:0, QCL:0, ANN:0, RLT:0 };
-            var dates  = { hier:0, auj:0, dem:0, sem:0, retard:0, aVenir:0 };
+            var stats = { INP: 0, ACC: 0, STA: 0, QCL: 0, CRE: 0 };
             var totalExtract = 0;
             var tbodyExtract = document.querySelector("#tableExtractResults tbody");
-
+            
             if (tbodyExtract) {
                 var rows = tbodyExtract.querySelectorAll("tr");
                 for (var r = 0; r < rows.length; r++) {
                     if (rows[r].id === "emptyFilterRow") continue;
-                    var statCell   = rows[r].cells[2];
-                    var dateCell   = rows[r].cells[4];
-                    var actionCell = rows[r].cells[5];
-                    if (!statCell) continue;
-                    var s = NettoyerChaine(statCell.textContent);
-                    var a = actionCell ? NettoyerChaine(actionCell.textContent) : "";
-                    var dRaw = dateCell ? NettoyerChaine(dateCell.textContent) : "";
-                    var dParsed = parseSAPDate(dRaw);
-                    totalExtract++;
-                    if (s === "INP") stats.INP++;
-                    else if (s === "ACC") stats.ACC++;
-                    else if (s === "STA") stats.STA++;
-                    else if (s === "QCL") stats.QCL++;
-                    else if (s === "CRE") { if (a.indexOf("Annulation") !== -1) stats.ANN++; else stats.RLT++; }
-                    if (dParsed) {
-                        var t = dParsed.getTime();
-                        if (t === hier.getTime())        dates.hier++;
-                        else if (t === today.getTime())  dates.auj++;
-                        else if (t === demain.getTime()) dates.dem++;
-                        if (t >= today.getTime() && t <= semaine.getTime()) dates.sem++;
-                        if (t <= il_y_a_2j.getTime()) dates.retard++;
-                        var dn = dParsed.getFullYear()*10000 + dParsed.getMonth()*100 + dParsed.getDate(); var tn = today.getFullYear()*10000 + today.getMonth()*100 + today.getDate(); if (dn > tn) dates.aVenir++;
+                    var statCell = rows[r].cells[2];
+                    if (statCell) {
+                        var s = NettoyerChaine(statCell.innerText || statCell.textContent);
+                        if (stats[s] !== undefined) {
+                            stats[s]++;
+                            totalExtract++;
+                        }
                     }
                 }
-                var enCours = stats.ACC + stats.STA;
                 document.getElementById("kpiTotalIC").innerText = totalExtract;
-                document.getElementById("statINP").innerText    = stats.INP;
-                document.getElementById("statANN").innerText    = stats.ANN;
-                document.getElementById("statRLT").innerText    = stats.RLT;
-                document.getElementById("statACC").innerText    = stats.ACC;
-                document.getElementById("statSTA").innerText    = stats.STA;
-                document.getElementById("statQCL").innerText    = stats.QCL;
-                document.getElementById("statENC").innerText    = enCours;
-                document.getElementById("statQCL2").innerText   = stats.QCL;
-                document.getElementById("statHier").innerText   = dates.hier;
-                document.getElementById("statAuj").innerText    = dates.auj;
-                document.getElementById("statDem").innerText    = dates.dem;
-                document.getElementById("statSem").innerText    = dates.sem;
-                document.getElementById("statRetard").innerText = dates.retard;
-                var T = totalExtract || 1;
-                var maxD = Math.max(dates.hier, dates.auj, dates.dem, dates.aVenir, dates.retard) || 1;
-                function pct(v, tot) { return Math.round(v/tot*100) + '%'; }
-                document.getElementById('barINP').style.width    = pct(stats.INP, T);
-                document.getElementById('barANN').style.width    = pct(stats.ANN, T);
-                document.getElementById('barRLT').style.width    = pct(stats.RLT, T);
-                document.getElementById('barACC').style.width    = pct(stats.ACC, T);
-                document.getElementById('barSTA').style.width    = pct(stats.STA, T);
-                document.getElementById('barQCL').style.width    = pct(stats.QCL, T);
-                document.getElementById('barRetard').style.width = pct(dates.retard, maxD);
-                document.getElementById('barHier').style.width   = pct(dates.hier,   maxD);
-                document.getElementById('barAuj').style.width    = pct(dates.auj,    maxD);
-                document.getElementById('barDem').style.width    = pct(dates.dem,    maxD);
-                document.getElementById('barSem').style.width    = pct(dates.sem,    maxD);
-                document.getElementById('statAVenir').innerText = dates.aVenir;
-                document.getElementById('barAVenir').style.width = pct(dates.aVenir, maxD);
+                document.getElementById("statINP").innerText = stats.INP;
+                document.getElementById("statCRE").innerText = stats.CRE;
+                document.getElementById("statACC").innerText = stats.ACC;
+                document.getElementById("statSTA").innerText = stats.STA;
+                document.getElementById("statQCL").innerText = stats.QCL;
+                
                 document.getElementById("icStatsContainer").style.display = "block";
                 document.getElementById("icStatsEmpty").style.display = "none";
             } else {
@@ -1516,7 +1314,12 @@
                 document.getElementById("icStatsEmpty").style.display = "block";
             }
 
-            var strHier = FormatDateString(hier); var strAujourdhui = FormatDateString(today); var strDemain = FormatDateString(demain);
+            var aujourdhui = new Date(); 
+            var hier = new Date(); hier.setDate(hier.getDate() - 1);
+            var demain = new Date(); demain.setDate(demain.getDate() + 1);
+            
+            var strHier = FormatDateString(hier); var strAujourdhui = FormatDateString(aujourdhui); var strDemain = FormatDateString(demain);
+
             var alertesHtml = "", mouvementsTrouves = false;
             if (msnData) {
                 for (var i = 0; i < msnData.length; i++) {
@@ -1524,33 +1327,34 @@
                     if (msnObj.msn && NettoyerChaine(msnObj.msn) !== "") {
                         var dateSortieMsn = NettoyerChaine(msnObj.dateSortie);
                         if (dateSortieMsn === strAujourdhui) {
-                            alertesHtml += "<div class='alert-item alert-today'><b>" + msnObj.msn + "</b> sort <b>AUJOURD'HUI</b> de son poste (" + msnObj.poste + ").</div>";
+                            alertesHtml += "<div class='alert-item alert-today'>✈️ Le <b>MSN " + msnObj.msn + "</b> sort <b>AUJOURD'HUI</b> de son poste (" + msnObj.poste + ").</div>";
                             mouvementsTrouves = true;
                         } else if (dateSortieMsn === strHier) {
-                            alertesHtml += "<div class='alert-item alert-yesterday'><b>" + msnObj.msn + "</b> a chang&eacute; de poste <b>HIER</b> (" + msnObj.poste + ").</div>";
+                            alertesHtml += "<div class='alert-item alert-yesterday'>⬅️ Le <b>MSN " + msnObj.msn + "</b> a changé de poste <b>HIER</b> (" + msnObj.poste + ").</div>";
                             mouvementsTrouves = true;
                         } else if (dateSortieMsn === strDemain) {
-                            alertesHtml += "<div class='alert-item alert-tomorrow'><b>" + msnObj.msn + "</b> change de poste <b>DEMAIN</b> (" + msnObj.poste + ").</div>";
+                            alertesHtml += "<div class='alert-item alert-tomorrow'>➡️ Le <b>MSN " + msnObj.msn + "</b> change de poste <b>DEMAIN</b> (" + msnObj.poste + ").</div>";
                             mouvementsTrouves = true;
                         }
                     }
                 }
             }
-            if (!mouvementsTrouves) {
-                alertesHtml = "<div class='msg-info' style='padding:15px; text-align:center; font-style:italic; border:1px dashed #c5d5de; border-radius:6px; color:#64748b; background:#fff;'>Aucun mouvement d'avion prevu hier, aujourd'hui ou demain.</div>";
+            if (!mouvementsTrouves) { 
+                alertesHtml = "<div class='msg-info' style='padding: 15px; text-align:center; font-style:italic; border:1px dashed #cbd5e1; border-radius:6px; color:#64748b; background:#fff;'>Aucun mouvement d'avion prévu hier, aujourd'hui ou demain.</div>"; 
             }
             document.getElementById("containerAlertes").innerHTML = alertesHtml;
         }
 
         function ShowPage(id) {
-            var pages = ["pageDashboard", "pageCreation", "pageExtract", "pagePlanningEquipes"];
-            var navs = ["navDashboard", "navCreation", "navExtract", "navPlanningEquipes"];
+            var pages = ["pageDashboard", "pageCreation", "pageExtract", "pagePlanningEquipes", "pagePersonnel"];
+            var navs = ["navDashboard", "navCreation", "navExtract", "navPlanningEquipes", "navPersonnel"];
             for (var i = 0; i < pages.length; i++) {
                 document.getElementById(pages[i]).className = "page"; document.getElementById(navs[i]).className = "nav-item";
             }
             document.getElementById(id).className = "page active"; document.getElementById("nav" + id.substring(4)).className = "nav-item active";
-            if (id === "pageDashboard") { RenderDashboard(); ResizeDashboard(); }
+            if (id === "pageDashboard") RenderDashboard();
             else if (id === "pageCreation") CancelDeleteModeCreation();
+            else if (id === "pagePersonnel") { CancelDeleteMode(); RenderPersonnelTable(); }
             else if (id === "pagePlanningEquipes") { RenderMSNTable(); RenderEquipeVacations(); }
         }
 
@@ -1620,16 +1424,8 @@
             var dd = d < 10 ? '0'+d : d; var mm = (m+1) < 10 ? '0'+(m+1) : (m+1);
             if(dpInput) {
                 dpInput.value = dd + '/' + mm + '/' + y;
-                if (dpInput.id === "inputDateExtractStart" || dpInput.id === "inputDateExtractEnd" || dpInput.id === "inputDateCreation") {
-                    SaveData();
-                } else {
-                    var msnIdx = dpInput.getAttribute("data-idx");
-                    if (msnIdx !== null) {
-                        UpdateValueMSN(parseInt(msnIdx), "dateSortie", dpInput.value);
-                    } else if (dpInput.fireEvent) {
-                        dpInput.fireEvent("onchange");
-                    }
-                }
+                if (dpInput.id === "inputDateExtractStart" || dpInput.id === "inputDateExtractEnd" || dpInput.id === "inputDateCreation") SaveData();
+                if (dpInput.fireEvent) { dpInput.fireEvent("onchange"); }
             }
             document.getElementById('custom-datepicker').style.display = 'none';
         }
@@ -1730,7 +1526,7 @@
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    callVBSCreation(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST, rowItem.index); var resultStr = document.getElementById("tableCreateBody").rows[rowItem.index].cells[13].innerHTML || "";
+                    var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -1770,13 +1566,12 @@
 
                 if ((msn !== "" || desc !== "") && (existingIC === "---" || existingIC === "")) {
                     if (zoneI === "" || zoneA === "") { alert("Erreur : Zones manquantes ligne " + (i + 1)); return; }
-                    if (desc.indexOf("//") === -1) { alert("Erreur ligne " + (i + 1) + " : La description doit contenir // pour separer texte zone et motif."); return; }
                     var posteFAL = "";
                     if (msn !== "") {
                         var msnObj = null; for (var m = 0; m < msnData.length; m++) { if (msnData[m].msn === msn) { msnObj = msnData[m]; break; } }
                         if (msnObj) {
                             posteFAL = msnObj.poste; var parsedSortie = parseDateString(msnObj.dateSortie.trim());
-                            if (parsedSortie && parsedSortie < new Date()) { alert("MSN " + msn + " périmé."); return; }
+                            if (parsedSortie && parsedSortie < new Date(2026, 5, 2)) { alert("MSN " + msn + " périmé."); return; }
                         } else { alert("MSN introuvable."); return; }
                     }
                     var checkedBox = ""; for(var c = 0; c < 7; c++) { if(row.cells[6+c].querySelector('input').checked) { checkedBox = chkNames[c]; break; } }
@@ -1790,64 +1585,16 @@
 
         function RenderEquipeVacations() {
             var uniques = ["Equipe 1", "Equipe 2", "Equipe 3"]; var cibles = ["tbodyEquipe1", "tbodyEquipe2", "tbodyEquipe3"]; var rolePriority = { "OP": 1, "IQ": 2, "ST": 3 };
-            var lineHeight = 38;
-            var totalRows = isEditingPlanning ? getTotalEditRows() : 0;
-            var numEditLines = 0;
             for (var eqIdx = 0; eqIdx < uniques.length; eqIdx++) {
                 var tbody = document.getElementById(cibles[eqIdx]); tbody.innerHTML = ""; var teamMembers = [];
-                for (var i = 0; i < personnelData.length; i++) { if (personnelData[i].equipe === uniques[eqIdx] && (isEditingPlanning || personnelData[i].nom || personnelData[i].poste)) teamMembers.push({data: personnelData[i], index: i}); }
-                teamMembers.sort(function(a, b) { var pA = rolePriority[a.data.poste] || 99; var pB = rolePriority[b.data.poste] || 99; return pA !== pB ? pA - pB : (a.data.nom.toUpperCase() < b.data.nom.toUpperCase() ? -1 : 1); });
-                numEditLines = isEditingPlanning ? Math.max(0, totalRows - teamMembers.length) : 0;
+                for (var i = 0; i < personnelData.length; i++) { if (personnelData[i].equipe === uniques[eqIdx]) teamMembers.push(personnelData[i]); }
+                teamMembers.sort(function(a, b) { var pA = rolePriority[a.poste] || 99; var pB = rolePriority[b.poste] || 99; return pA !== pB ? pA - pB : (a.nom.toUpperCase() < b.nom.toUpperCase() ? -1 : 1); });
                 for (var j = 0; j < teamMembers.length; j++) {
-                    (function(jj, pIdx) {
-                        var row = tbody.insertRow(-1); row.style.height = lineHeight + "px";
-                        var cellP = row.insertCell(0); cellP.style.height = lineHeight + "px"; cellP.style.padding = "0"; cellP.style.textAlign = "center";
-                        var cellN = row.insertCell(1); cellN.style.height = lineHeight + "px"; cellN.style.padding = "0";
-                        var pv = teamMembers[jj].data.poste;
-                        if (isEditingPlanning) {
-                            var posteClr = pv === "IQ" ? "#10b981" : (pv === "ST" ? "#f59e0b" : "#334155");
-                            var posteWrap = document.createElement("div"); posteWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;";
-                            var posteDisplay = document.createElement("span"); posteDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-weight:bold; color:" + posteClr + "; font-size:13px; position:relative; z-index:0; pointer-events:none;"; posteDisplay.textContent = pv || ""; posteWrap.appendChild(posteDisplay);
-                            var selEl = document.createElement("select"); selEl.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;";
-                            var opBlank = document.createElement("option"); opBlank.value = ""; opBlank.text = ""; if (pv === "") opBlank.selected = true; selEl.appendChild(opBlank);
-                            var opOP = document.createElement("option"); opOP.value = "OP"; opOP.text = "OP"; if (pv === "OP") opOP.selected = true; selEl.appendChild(opOP);
-                            var opIQ = document.createElement("option"); opIQ.value = "IQ"; opIQ.text = "IQ"; if (pv === "IQ") opIQ.selected = true; selEl.appendChild(opIQ);
-                            var opST = document.createElement("option"); opST.value = "ST"; opST.text = "ST"; if (pv === "ST") opST.selected = true; selEl.appendChild(opST);
-                            selEl.setAttribute("data-pidx", pIdx); selEl.onchange = function() { var v = this.value; var c = v === "IQ" ? "#10b981" : (v === "ST" ? "#f59e0b" : "#334155"); posteDisplay.style.color = c; posteDisplay.textContent = v; personnelData[parseInt(this.getAttribute("data-pidx"))].poste = v; SaveData(); }; posteWrap.appendChild(selEl); cellP.appendChild(posteWrap);
-                            var wrapper = document.createElement("div"); wrapper.style.cssText = "position:relative; width:100%; height:" + (lineHeight-2) + "px;";
-                            var inp = document.createElement("input"); inp.type = "text"; inp.className = "excel-input"; inp.style.cssText = "height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box; text-align:left; text-transform:uppercase;"; inp.value = teamMembers[jj].data.nom; inp.setAttribute("data-pidx", pIdx); inp.oninput = function() { var pos = this.selectionStart; this.value = this.value.toUpperCase(); try { this.setSelectionRange(pos, pos); } catch(e) {} }; inp.onchange = function() { personnelData[parseInt(this.getAttribute("data-pidx"))].nom = this.value.toUpperCase().trim(); SaveData(); }; wrapper.appendChild(inp);
-                            var btnDel = document.createElement("button"); btnDel.textContent = "✕"; btnDel.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; btnDel.setAttribute("data-pidx", pIdx); btnDel.onclick = function() { var idx = parseInt(this.getAttribute("data-pidx")); personnelData[idx].poste = ""; personnelData[idx].nom = ""; SaveData(); RenderEquipeVacations(); }; wrapper.appendChild(btnDel); cellN.appendChild(wrapper);
-                        } else {
-                            cellP.style.padding = "10px"; cellN.style.padding = "10px"; cellN.style.textAlign = "left";
-                            cellP.innerHTML = pv === "OP" ? "<strong>OP</strong>" : (pv === "IQ" ? "<strong style='color:#10b981;'>IQ</strong>" : (pv === "ST" ? "<strong style='color:#f59e0b;'>ST</strong>" : ""));
-                            cellN.innerHTML = teamMembers[jj].data.nom;
-                        }
-                    })(j, teamMembers[j].index);
+                    var row = tbody.insertRow(-1); var cellP = row.insertCell(0); cellP.className = "col-poste-equipe"; cellP.style.padding = "10px";
+                    cellP.innerHTML = teamMembers[j].poste === "OP" ? "OP" : (teamMembers[j].poste === "IQ" ? "<span style='color:#10b981;'>IQ</span>" : "<span style='color:#f59e0b;'>ST</span>");
+                    var cellN = row.insertCell(1); cellN.style.padding = "10px"; cellN.innerHTML = "<strong>" + teamMembers[j].nom + "</strong>";
                 }
-                if (isEditingPlanning) {
-                    for (var e = 0; e < numEditLines; e++) {
-                        (function(eqName) {
-                            var row = tbody.insertRow(-1); row.style.height = lineHeight + "px";
-                            var c1 = row.insertCell(0); c1.style.padding = "0"; c1.style.height = lineHeight + "px"; c1.style.textAlign = "center";
-                            var c2 = row.insertCell(1); c2.style.padding = "0"; c2.style.height = lineHeight + "px";
-                            var newPosteVal = "";
-                            var newPosteWrap = document.createElement("div"); newPosteWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;";
-                            var newPosteDisplay = document.createElement("span"); newPosteDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-weight:bold; color:#334155; font-size:13px; position:relative; z-index:0; pointer-events:none;"; newPosteDisplay.textContent = ""; newPosteWrap.appendChild(newPosteDisplay);
-                            var newSel = document.createElement("select"); newSel.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;";
-                            var ob = document.createElement("option"); ob.value = ""; newSel.appendChild(ob);
-                            var oOP = document.createElement("option"); oOP.value = "OP"; oOP.text = "OP"; newSel.appendChild(oOP);
-                            var oIQ = document.createElement("option"); oIQ.value = "IQ"; oIQ.text = "IQ"; newSel.appendChild(oIQ);
-                            var oST = document.createElement("option"); oST.value = "ST"; oST.text = "ST"; newSel.appendChild(oST);
-                            newSel.onchange = function() { newPosteVal = this.value; var c = newPosteVal === "IQ" ? "#10b981" : (newPosteVal === "ST" ? "#f59e0b" : "#334155"); newPosteDisplay.style.color = c; newPosteDisplay.textContent = newPosteVal; }; newPosteWrap.appendChild(newSel); c1.appendChild(newPosteWrap);
-                            var newWrapper = document.createElement("div"); newWrapper.style.cssText = "position:relative; width:100%; height:" + (lineHeight-2) + "px;";
-                            var newInp = document.createElement("input"); newInp.type = "text"; newInp.className = "excel-input new-member-input"; newInp.style.cssText = "height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box; text-align:left; text-transform:uppercase;"; newInp.setAttribute("data-eqname", eqName); newInp.oninput = function() { var pos = this.selectionStart; this.value = this.value.toUpperCase(); try { this.setSelectionRange(pos, pos); } catch(e) {} };
-                            newWrapper.appendChild(newInp);
-                            var newBtnClear = document.createElement("button"); newBtnClear.textContent = "✕"; newBtnClear.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; newBtnClear.onclick = function(e) { if(e) e.stopPropagation(); newInp.value = ""; newSel.value = ""; newPosteVal = ""; }; newWrapper.appendChild(newBtnClear);
-                            c2.appendChild(newWrapper);
-                        })(uniques[eqIdx]);
-                    }
-                }
-                if (teamMembers.length === 0 && !isEditingPlanning) tbody.insertRow(-1).innerHTML = "<td colspan='3' style='padding:20px; text-align:center; color:#94a3b8; font-style:italic;'>Aucun effectif</td>";
+                if (teamMembers.length === 0) tbody.insertRow(-1).innerHTML = "<td colspan='2' style='padding:20px; text-align:center; color:#94a3b8; font-style:italic;'>Aucun effectif</td>";
             }
         }
 
@@ -1865,38 +1612,91 @@
         }
 
         function RenderMSNTable() {
-            var tbody = document.getElementById("tbodyMSN"); tbody.innerHTML = "";
-            var lineHeight = 38;
-            var hasContent = 0;
-            for (var c = 0; c < msnData.length; c++) { if (msnData[c].msn) hasContent++; }
-            var numRows;
-            if (isEditingPlanning) {
-                numRows = Math.max(getTotalEditRows(), hasContent);
-                while (msnData.length < numRows) { msnData.push({ msn: "", poste: "", dateSortie: "", valide: false }); }
-            } else {
-                numRows = hasContent;
-            }
-            for (var i = 0; i < numRows; i++) {
+            var tbody = document.getElementById("tbodyMSN"); tbody.innerHTML = ""; 
+            while (msnData.length < 12) { msnData.push({ msn: "", poste: "", dateSortie: "", valide: false }); }
+            for (var i = 0; i < 12; i++) {
                 var p = msnData[i];
                 (function(index) {
-                    var row = tbody.insertRow(-1); row.style.height = lineHeight + "px";
-                    var c0 = row.insertCell(0); c0.style.height = lineHeight + "px"; c0.style.padding = "0"; c0.style.textAlign = "center";
-                    var c1 = row.insertCell(1); c1.style.height = lineHeight + "px"; c1.style.padding = "0"; c1.style.textAlign = "center";
-                    var c2 = row.insertCell(2); c2.style.height = lineHeight + "px"; c2.style.padding = "0";
-                    if (isEditingPlanning) {
-                        var inp0 = document.createElement("input"); inp0.type = "text"; inp0.className = "excel-input"; inp0.style.cssText = "text-align:center; cursor:pointer; height:" + (lineHeight-2) + "px; width:100%; padding:0 8px; box-sizing:border-box;"; inp0.value = p.dateSortie || ""; inp0.readOnly = true; inp0.setAttribute("data-idx", index); inp0.onclick = function(e) { showCalendar(this, e || window.event); }; inp0.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "dateSortie", this.value); }; c0.appendChild(inp0);
-                        var avionWrap = document.createElement("div"); avionWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;"; var avionDisplay = document.createElement("span"); avionDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-size:13px; color:#334155; position:relative; z-index:0; pointer-events:none;"; avionDisplay.textContent = p.poste || ""; avionWrap.appendChild(avionDisplay); var selEl = document.createElement("select"); selEl.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;"; var opt0 = document.createElement("option"); opt0.value = ""; selEl.appendChild(opt0); for (var k = 0; k < postesAvionList.length; k++) { var opt = document.createElement("option"); opt.value = postesAvionList[k]; opt.text = postesAvionList[k]; if (p.poste === postesAvionList[k]) opt.selected = true; selEl.appendChild(opt); } selEl.setAttribute("data-idx", index); selEl.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "poste", this.value); avionDisplay.textContent = this.value; }; avionWrap.appendChild(selEl); c1.appendChild(avionWrap);
-                        var wrapMSN = document.createElement("div"); wrapMSN.style.cssText = "position:relative; width:100%; height:" + (lineHeight-2) + "px;";
-                        var inp2 = document.createElement("input"); inp2.type = "text"; inp2.className = "excel-input"; inp2.style.cssText = "font-weight:bold; text-align:left; height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box;"; inp2.value = p.msn || ""; inp2.setAttribute("data-idx", index); inp2.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "msn", this.value); }; wrapMSN.appendChild(inp2);
-                        var btnDel = document.createElement("button"); btnDel.textContent = "✕"; btnDel.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; btnDel.setAttribute("data-idx", index); btnDel.onclick = function() { msnData[parseInt(this.getAttribute("data-idx"))] = {msn: "", poste: "", dateSortie: "", valide: false}; SaveData(); RenderMSNTable(); }; wrapMSN.appendChild(btnDel); c2.appendChild(wrapMSN);
-                    } else {
-                        c0.style.padding = "10px"; c1.style.padding = "10px"; c2.style.padding = "10px"; c2.style.textAlign = "center";
-                        c0.innerHTML = p.dateSortie ? "<span style='color:#334155;'>" + p.dateSortie + "</span>" : "";
-                        c1.innerHTML = p.poste ? "<span style='color:#334155;'>" + p.poste + "</span>" : "";
-                        c2.innerHTML = p.msn ? "<span style='color:#334155; font-weight:bold;'>" + p.msn + "</span>" : "";
+                    var row = tbody.insertRow(-1); 
+                    row.insertCell(0).innerHTML = "<input type='search' class='excel-input' style='font-weight: bold; text-align:center;' value='" + p.msn + "' onchange='UpdateValueMSN(" + index + ", \"msn\", this.value)'>";
+                    var selectHtml = "<select class='excel-input custom-select-small' style='text-align:center; cursor:pointer;' onchange='UpdateValueMSN(" + index + ", \"poste\", this.value)'><option value=''></option>";
+                    for (var k = 0; k < postesAvionList.length; k++) {
+                        var sel = (p.poste === postesAvionList[k]) ? " selected" : "";
+                        selectHtml += "<option value='" + postesAvionList[k] + "'" + sel + ">" + postesAvionList[k] + "</option>";
                     }
+                    row.insertCell(1).innerHTML = selectHtml + "</select>";
+                    row.insertCell(2).innerHTML = "<input type='text' class='excel-input' style='text-align:center; cursor:pointer;' value='" + p.dateSortie + "' onclick='showCalendar(this, event)' readonly='readonly' onchange='UpdateValueMSN(" + index + ", \"dateSortie\", this.value)'>";
                 })(i);
             }
+        }
+
+        function AjouterLignePersonnel() { 
+            personnelData.push({ nom: "", prenom: "", poste: "OP", equipe: "Equipe 1" });
+            SaveData(); RenderPersonnelTable();
+            setTimeout(function() {
+                var tbody = document.getElementById("tbodyPersonnel");
+                if (tbody.rows.length > 0) {
+                    var lastRow = tbody.rows[tbody.rows.length - 1];
+                    var inputNom = lastRow.cells[1].querySelector('input'); if (inputNom) inputNom.focus();
+                }
+            }, 50);
+        }
+
+        function EnableDeleteMode() { 
+            isDeleteMode = true;
+            document.getElementById("btnAddNew").style.display = "none"; document.getElementById("btnDeleteModeToggle").style.display = "none"; 
+            document.getElementById("btnConfirmDelete").style.display = "inline-block"; document.getElementById("btnCancelDelete").style.display = "inline-block"; 
+            RenderPersonnelTable();
+        }
+
+        function ConfirmDelete() { 
+            var indicesASupprimer = [];
+            for (var i = 0; i < personnelData.length; i++) { 
+                var chk = document.getElementById("chkDel_" + i); if (chk && chk.checked) indicesASupprimer.push(i);
+            } 
+            if (indicesASupprimer.length > 0) { 
+                for (var j = indicesASupprimer.length - 1; j >= 0; j--) { personnelData.splice(indicesASupprimer[j], 1); } 
+            } 
+            SaveData(); CancelDeleteMode(); 
+        }
+
+        function CancelDeleteMode() { 
+            isDeleteMode = false;
+            document.getElementById("btnAddNew").style.display = "inline-block"; document.getElementById("btnDeleteModeToggle").style.display = "inline-block";
+            document.getElementById("btnConfirmDelete").style.display = "none"; document.getElementById("btnCancelDelete").style.display = "none"; 
+            RenderPersonnelTable();
+        }
+
+        function UpdateValue(index, field, value) { 
+            if (field === "nom") personnelData[index].nom = value.toUpperCase().trim();
+            else if (field === "prenom") personnelData[index].prenom = value.trim();
+            SaveData();
+        }
+        function UpdatePoste(index, val) { personnelData[index].poste = val; SaveData(); }
+        function UpdateEquipe(index, val) { personnelData[index].equipe = val; SaveData(); }
+
+        function RenderPersonnelTable() {
+            var tbody = document.getElementById("tbodyPersonnel"); tbody.innerHTML = "";
+            if (personnelData.length === 0) {
+                tbody.insertRow(-1).innerHTML = "<td colspan='5' style='padding:20px; text-align:center; color:#94a3b8; font-style:italic;'>Aucun effectif assigné</td>";
+            } else {
+                for (var i = 0; i < personnelData.length; i++) {
+                    var p = personnelData[i]; var row = tbody.insertRow(-1);
+                    var c0 = row.insertCell(0); c0.style.display = isDeleteMode ? "" : "none"; c0.className = "col-select";
+                    c0.innerHTML = "<input type='checkbox' id='chkDel_" + i + "' class='chk-select'>";
+                    row.insertCell(1).innerHTML = "<input type='text' class='excel-input' value='" + p.nom + "' onchange='UpdateValue(" + i + ", \"nom\", this.value)'>";
+                    row.insertCell(2).innerHTML = "<input type='text' class='excel-input' value='" + p.prenom + "' onchange='UpdateValue(" + i + ", \"prenom\", this.value)'>";
+                    var selPoste = "<select class='excel-input custom-select-small' onchange='UpdatePoste(" + i + ", this.value)'>";
+                    var postes = ["OP", "IQ", "ST"];
+                    for (var k=0; k<postes.length; k++) { selPoste += "<option value='" + postes[k] + "'" + (p.poste === postes[k] ? " selected" : "") + ">" + postes[k] + "</option>"; }
+                    row.insertCell(3).innerHTML = selPoste + "</select>";
+                    var selEquipe = "<select class='excel-input custom-select-small' onchange='UpdateEquipe(" + i + ", this.value)'>";
+                    var equipes = ["Equipe 1", "Equipe 2", "Equipe 3", ""];
+                    for (var k=0; k<equipes.length; k++) { selEquipe += "<option value='" + equipes[k] + "'" + (p.equipe === equipes[k] ? " selected" : "") + ">" + (equipes[k]===""?"-":equipes[k]) + "</option>"; }
+                    row.insertCell(4).innerHTML = selEquipe + "</select>";
+                }
+            }
+            var th = document.getElementById("thSelection"); if (th) th.style.display = isDeleteMode ? "" : "none";
         }
 
         // --- 6. EXTRACTION ET TRAITEMENT SAP ---
@@ -1923,7 +1723,7 @@
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    callVBSExtraction(dSapStart, dSapEnd); var resultatHTML = document.getElementById("resultatExtraction").innerHTML || "";
+                    var resultatHTML = VBS_LancerSAP(dSapStart, dSapEnd);
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -1948,7 +1748,7 @@
             for (var i = 0; i < allRows.length; i++) {
                 var tr = allRows[i]; if(tr.id === "emptyFilterRow") continue;
                 tr.cells[0].style.display = "";
-                var statut = (tr.cells[2].textContent).trim();
+                var statut = (tr.cells[2].innerText || tr.cells[2].textContent).trim();
                 if (statut === targetStatus) { tr.style.display = ""; tr.querySelector('.chk-extract').checked = true; rowsToProcess.push(tr); } else { tr.style.display = "none"; tr.querySelector('.chk-extract').checked = false; }
             }
             var btnExec = document.getElementById("btnConfirmActionExec"); var emptyMsgDiv = document.getElementById("emptyFilterMsg");
@@ -1988,11 +1788,11 @@
         function StopAction() { stopActionFlag = true; document.getElementById("btnStopAction").innerHTML = "🛑 Arrêt..."; }
 
         function ProcessNextActionRow(index, rows, type) {
-            if (index >= rows.length || stopActionFlag) { stopActionFlag = false; AnnulerFiltreAction(); checkEmptyTable(); return; }
-            var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
+            if (index >= rows.length || stopActionFlag) { AnnulerFiltreAction(); checkEmptyTable(); return; }
+            var tr = rows[index]; var icNum = (tr.cells[1].innerText || tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    callVBSAction(icNum, type); var res = tr.cells[5].innerHTML || "";
+                    var res = VBS_ExecuterActionSpecifique(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
@@ -2082,97 +1882,15 @@
                     }
                 }
             } catch (err) {
-                if (typeof console !== 'undefined' && console.log) {
-                    console.log('[DEBUG] Erreur collage:', err.message);
-                }
+                // Erreur silencieuse de collage pour ne pas bloquer l'IHM
             }
             return false;
         };
 
-
-        var isEditingPlanning = false;
-
-        function getTotalEditRows() {
-            var thead = document.querySelector("#tablePlanningMSN thead");
-            if (thead) {
-                var y = 0;
-                var el = thead;
-                while (el) { y += (el.offsetTop || 0); el = el.offsetParent; }
-                y += thead.offsetHeight;
-                var available = window.innerHeight - y - 55;
-                return Math.max(8, Math.floor(available / 38));
-            }
-            return Math.max(8, Math.floor((window.innerHeight - 285) / 38));
-        }
-
-        function ToggleEditMode() {
-            isEditingPlanning = true;
-            document.getElementById("btnModifierPlanning").style.display = "none";
-            document.getElementById("btnValidateEdit").style.display = "inline-block";
-            document.getElementById("btnCancelEdit").style.display = "inline-block";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function SaveAndExitEditMode() {
-            var newInputs = document.querySelectorAll(".new-member-input");
-            for (var i = 0; i < newInputs.length; i++) {
-                var nom = newInputs[i].value.trim();
-                if (!nom) continue;
-                var eqName = newInputs[i].getAttribute("data-eqname");
-                var row = newInputs[i].parentNode.parentNode.parentNode;
-                var sel = (row && row.cells && row.cells[0]) ? row.cells[0].getElementsByTagName("select")[0] : null;
-                var poste = (sel && sel.value) ? sel.value : "OP";
-                personnelData.push({nom: nom.toUpperCase(), poste: poste, equipe: eqName});
-            }
-            SaveData();
-            isEditingPlanning = false;
-            document.getElementById("btnModifierPlanning").style.display = "inline-block";
-            document.getElementById("btnValidateEdit").style.display = "none";
-            document.getElementById("btnCancelEdit").style.display = "none";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function CancelEditMode() {
-            isEditingPlanning = false;
-            document.getElementById("btnModifierPlanning").style.display = "inline-block";
-            document.getElementById("btnValidateEdit").style.display = "none";
-            document.getElementById("btnCancelEdit").style.display = "none";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function ResizeDashboard() {
-            var eff    = document.getElementById("cardEffectifs");
-            var aide   = document.getElementById("cardAide");
-            var alerte = document.getElementById("cardAlertes");
-            var stats  = document.getElementById("cardStats");
-            if (!eff || !aide) return;
-
-            // Egaliser ligne 1
-            eff.style.height = ""; aide.style.height = "";
-            var h1 = Math.max(eff.offsetHeight, aide.offsetHeight);
-            eff.style.height = h1 + "px"; aide.style.height = h1 + "px";
-
-            // Égaliser ligne 2 en fonction du contenu
-            if (alerte && stats) {
-                alerte.style.height = ""; stats.style.height = "";
-                var alerteHeight = alerte.offsetHeight;
-                var statsHeight = stats.offsetHeight;
-                var maxHeight = Math.max(alerteHeight, statsHeight);
-                alerte.style.height = maxHeight + "px";
-                stats.style.height = maxHeight + "px";
-            }
-        }
-
         // --- 8. INITIALISATION APPLICATIVE AU BOOTSTRAP ---
         window.onload = function() {
-            if (!window.personnelData) window.personnelData = [];
-            if (!window.msnData) window.msnData = [];
-            if (!window.stopActionFlag) window.stopActionFlag = false;
-
-            LoadData();
+            window.resizeTo(1400, 900); 
+            LoadData(); 
             var tbody = document.getElementById('tbodySaisieCreation'); if(tbody) tbody.innerHTML = '';
             for(var i=0; i<18; i++) { AjouterLigneSaisieIC(); }
             
@@ -2196,175 +1914,107 @@
 
     <div id="mainApp" style="display:none;">
         <div id="sidebar">
-            <div id="sidebar-header" style="padding: 20px 18px 16px;">
-                <div style="text-align:center; margin-bottom:10px;">
-                    <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 1349.8 363.7" style="width:100%; max-width:210px; height:auto; display:inline-block;">
-                        <style>.ls0{fill:#ffffff;}.ls1{clip-path:url(#SVGID_2_);fill:#ffffff;}.ls2{clip-path:url(#SVGID_2_);fill:#E4342D;}</style>
-                        <polygon class="ls0" points="0,110.8 0,261.3 134.8,261.3 134.8,237.7 28.4,237.7 28.4,110.8 "/>
-                        <g>
-                            <defs><rect id="SVGID_1_" width="1349.8" height="363.7"/></defs>
-                            <clipPath id="SVGID_2_"><use xlink:href="#SVGID_1_" style="overflow:visible;"/></clipPath>
-                            <path class="ls1" d="M223.2,110.8l-81.3,150.6h30.9l24.8-45.5h69.1l25,45.5h31.4l-81.8-150.6H223.2z M254.1,192.3h-43.8L223,168c2-3.6,3.9-7.1,5.8-10.7c1.2-2.2,2.3-4.4,3.4-6.6c1.3,2.4,2.5,4.7,3.8,7L254.1,192.3z"/>
-                            <path class="ls1" d="M454.8,201.3c5.3-1.3,10.3-2.9,15.1-4.9c6.4-2.7,12-5.9,16.6-9.8c4.7-3.9,8.5-8.3,11.3-13.2c2.8-5,4.3-10.6,4.3-16.7c0-15.4-8-27.2-23.7-34.8c-15.1-7.4-37.6-11.1-66.9-11.1h-65.4v150.6h28.4v-56.7h43.9l71.4,56.7h41.5L454.8,201.3z M374.5,134.4h35.1c14.9,0,26.9,0.8,35.6,2.4c8.6,1.6,15.1,3.6,19.3,5.9c4,2.2,6.5,4.4,7.4,6.8c1.1,2.6,1.6,5,1.6,7.2c0,2.6-0.9,5.3-2.6,8.1c-1.7,2.8-4.5,5.5-8.3,7.8c-3.9,2.4-9,4.5-15.2,6c-6.2,1.6-13.9,2.4-22.8,2.4h-50.2V134.4z"/>
-                            <path class="ls2" d="M755.3,151.6c-5.6-9.7-13.2-17.9-22.6-24.4c-9.3-6.4-20-11.2-31.9-14.3c-23.6-6.2-49.5-6.2-73.2,0c-11.9,3.1-22.6,7.9-31.9,14.2c-9.4,6.4-17,14.5-22.6,24.3c-5.7,9.8-8.6,21.4-8.6,34.6c0,13.1,2.9,24.8,8.6,34.6c5.6,9.7,13.2,17.9,22.6,24.4c9.3,6.4,20,11.2,31.9,14.3c11.8,3.1,24.1,4.7,36.6,4.7c12.5,0,24.8-1.6,36.6-4.7c11.9-3.1,22.6-7.9,31.9-14.2c9.4-6.4,17-14.5,22.6-24.3c5.7-9.8,8.6-21.4,8.6-34.6C763.9,173,761,161.4,755.3,151.6 M664.1,131.4c9.6,0,18.9,1.1,27.6,3.4c8.6,2.2,16.3,5.7,22.7,10.2c6.4,4.5,11.6,10.2,15.4,16.9c3.8,6.7,5.7,14.8,5.7,24c0,9.1-1.9,17.1-5.7,23.9c-3.8,6.8-8.9,12.5-15.3,16.9c-6.5,4.5-14.1,7.9-22.6,10.1c-8.6,2.3-17.9,3.4-27.5,3.4c-9.7,0-18.9-1.1-27.5-3.4c-8.5-2.2-16.2-5.6-22.7-10.1c-6.4-4.4-11.6-10.1-15.3-16.9c-3.8-6.8-5.7-14.8-5.7-23.9c0-9.2,1.9-17.3,5.7-24c3.8-6.7,8.9-12.4,15.4-16.9c6.5-4.5,14.1-8,22.6-10.2C645.4,132.6,654.6,131.4,664.1,131.4"/>
-                            <path class="ls1" d="M989.2,209.1c-3.5,4-7.4,7.9-11.5,11.7c-4.1,3.7-8.6,7.1-13.5,10c-4.9,2.9-10.4,5.3-16.3,7c-5.9,1.8-12.5,2.7-19.6,2.7c-9.2,0-18.2-1.1-26.6-3.3c-8.4-2.2-15.9-5.6-22.4-10.1c-6.4-4.5-11.6-10.2-15.4-16.9c-3.8-6.7-5.7-14.8-5.7-24c0-9.7,2-18,6.1-24.9c4.1-6.9,9.5-12.6,16-17c6.6-4.4,14.3-7.7,22.7-9.7c8.6-2,17.4-3.1,26.4-3.1c12.3,0,22.6,2.4,30.8,7.2c8.3,4.8,16,11.8,22.8,20.5l1.3,1.6l24.4-12.2l-1.9-2.4c-9.2-11.7-20.1-21.1-32.4-27.9c-12.4-6.8-27.6-10.2-45-10.2c-14.2,0-27.4,1.8-39.2,5.3c-12,3.6-22.6,8.8-31.7,15.6c-9.1,6.8-16.3,15.1-21.2,24.7c-5,9.6-7.5,20.4-7.5,32.2c0,11.9,2.6,22.8,7.7,32.5c5.1,9.7,12.5,18.2,22.1,25.4c7.5,5.8,17.4,10.6,29.2,14.4c11.8,3.7,25.1,5.6,39.5,5.6c10.1,0,19.4-1.2,27.7-3.5c8.3-2.3,15.9-5.4,22.7-9.1c6.8-3.8,13-8.1,18.5-12.9c5.4-4.8,10.4-9.8,15-14.8l2.1-2.3l-23.6-13.6L989.2,209.1z"/>
-                            <polygon class="ls1" points="1157.5,171 1052.3,171 1052.3,110.8 1023.9,110.8 1023.9,261.3 1052.3,261.3 1052.3,194.5 1157.5,194.5 1157.5,261.3 1186,261.3 1186,110.8 1157.5,110.8"/>
-                            <polygon class="ls1" points="1246.8,237.7 1246.8,194.9 1327.9,194.9 1327.9,171.3 1246.8,171.3 1246.8,134.4 1346.6,134.4 1346.6,110.8 1218.4,110.8 1218.4,261.3 1349.8,261.3 1349.8,237.7"/>
-                            <path class="ls2" d="M994.9,357.7c-6,0-11.1-0.8-15.2-2.3c-6.2-2.3-9.5-6.7-10-13.3h6c0.4,3.6,2.2,6.3,5.2,8c3,1.7,7.7,2.5,14.1,2.5c13.9,0,20.9-4,20.9-12.1v-4.5c-5.2,4.7-12.5,7.1-22,7.1c-7.4,0-13.6-1.6-18.6-4.8c-5.9-3.8-8.9-9.2-8.9-16.1c0-7.1,3.1-12.6,9.2-16.5c5.1-3.2,11.4-4.8,19-4.8c9.3,0,16.4,2.4,21.2,7.3v-6.3h6.1v38.7C1022,352,1013,357.7,994.9,357.7 M994.5,306c-5.7,0-10.6,1.2-14.7,3.6c-4.8,2.9-7.2,7-7.2,12.4c0,5.2,2.1,9.2,6.4,12c3.8,2.6,8.7,3.8,14.7,3.8c6.1,0,11.2-1.2,15.2-3.7c4.7-2.8,7-6.8,7-11.9c0-5.3-2.3-9.5-7-12.4C1004.9,307.3,1000.1,306,994.5,306"/>
-                            <path class="ls2" d="M1043,311.3c-3.8,3.6-5.8,8.5-5.8,14.9v16.5h-6.2v-40.9h6.2v6.4c1.4-1.4,3.2-2.7,5.5-3.8c4.8-2.4,11-3.6,18.5-3.6v5C1053,306,1046.9,307.7,1043,311.3"/>
-                            <path class="ls2" d="M1112.7,339c-5.3,3.1-11.9,4.7-19.8,4.7c-7.9,0-14.5-1.6-19.8-4.8c-6.3-3.8-9.4-9.4-9.4-16.5c0-7.2,3.3-12.8,9.8-16.6c5.3-3.2,11.9-4.8,19.7-4.8c7.9,0,14.5,1.6,19.7,4.8c6.4,3.9,9.6,9.4,9.6,16.6C1122.5,329.5,1119.2,335.1,1112.7,339 M1109.3,309.8c-4.2-2.6-9.6-3.8-16.2-3.8c-6.6,0-12,1.3-16.3,3.9c-4.7,2.9-7,7-7,12.4c0,5.3,2.4,9.5,7.1,12.4c4.3,2.6,9.7,3.9,16.2,3.9c6.5,0,11.8-1.3,16.1-3.9c4.8-2.9,7.2-7,7.2-12.4C1116.4,316.9,1114,312.7,1109.3,309.8"/>
-                            <path class="ls2" d="M1171.9,342.8v-5.3c-4.4,4.1-11.1,6.2-20.1,6.2c-6.2,0-11.3-1-15.4-3c-5.4-2.6-8.1-6.7-8.1-12.4V302h6.2v26.2c0,7,5.8,10.4,17.3,10.4c6,0,10.7-1.1,14.1-3.3c4-2.5,5.9-6.3,5.9-11.3V302h6.2v40.9H1171.9z"/>
-                            <path class="ls2" d="M1235.4,339.5c-5,3.3-11.4,4.9-19.4,4.9c-9.9,0-17.3-2.6-22.2-7.7v20h-6.2v-54.9h6.2v6.7c4.9-5.1,12.3-7.6,22.1-7.6c8,0,14.4,1.6,19.4,4.8c6,3.9,8.9,9.5,8.9,16.8C1244.2,330,1241.3,335.7,1235.4,339.5 M1216.6,306c-6.3,0-11.6,1.3-15.8,4c-4.6,3-6.9,7.1-6.9,12.4c0,5.9,2.2,10.3,6.6,13.2c3.9,2.5,9.2,3.8,16,3.8c6.3,0,11.4-1.3,15.3-4c4.3-3,6.4-7.2,6.4-12.7c0-5.6-2.3-9.9-6.8-12.9C1227.4,307.3,1222.5,306,1216.6,306"/>
-                            <path class="ls1" d="M789.3,122.3c-0.9-1.6-2.8-2.2-4.4-1.4c-1.6,0.8-2.4,2.6-1.8,4.3c17.8,47.3,6.6,101.3-28.5,137.6c-21.7,22.4-49.8,36-80.3,39.2c-2.8-39.9-7-84.5-8.6-84.5c-1.8,0-4.4,45.1-5.6,85.2c-14.4,0-28.5-2.4-42-7c-1.7-0.6-3.6,0.3-4.3,1.9c-0.7,1.7,0,3.6,1.6,4.4c13.8,7.1,28.9,11.7,44.4,13.6c-0.6,24.4-0.6,44.6,0.6,47.8c0,0,8.7-11.4,15.7,0c1.7,2.8,1-19.1-0.7-46.9c35.7,0,69-14.1,93.8-39.8C808.8,235.8,817.2,172.2,789.3,122.3"/>
-                            <path class="ls1" d="M665.6,146.2c1.6,0,5.4-39.7,8.1-77.7c15.8,0.1,31.2,2.9,45.9,8.5c1.7,0.6,3.6-0.1,4.3-1.8c0.8-1.6,0.1-3.6-1.4-4.4c-14.8-8.3-31.1-13.6-47.9-15.7c2.1-31.3,3.2-58,1.3-54.9c-7,11.4-15.7,0-15.7,0c-1.3,3.5-1.2,26.8-0.4,53.9c-0.4,0-0.8,0-1.2,0c-34,0-66.1,13-90.6,36.5c-41.2,39.6-51.7,102.8-25.7,153.7c0.6,1.2,1.8,1.9,3.1,1.9c0.4,0,0.9-0.1,1.3-0.3c1.7-0.7,2.5-2.6,1.9-4.3c-16.1-47.9-3-101.5,33.4-136.5c21.5-20.7,48.9-33.3,78.3-36.1C661.6,106.9,663.9,146.2,665.6,146.2"/>
-                        </g>
-                    </svg>
-                </div>
-                <div style="text-align:center; font-size:11px; font-weight:700; color:#94a3b8; letter-spacing:3px; text-transform:uppercase;">IC Manager &mdash; A350</div>
+            <div id="sidebar-header">
+                <h1>IC MANAGER <span style="color:white">A350</span></h1>
             </div>
             <div id="navDashboard" class="nav-item active" onclick="ShowPage('pageDashboard')">Tableau de bord</div>
             <div id="navCreation" class="nav-item" onclick="ShowPage('pageCreation')">Création ICs</div>
             <div id="navExtract" class="nav-item" onclick="ShowPage('pageExtract')">Extract ICs</div>
             <div id="navPlanningEquipes" class="nav-item" onclick="ShowPage('pagePlanningEquipes')">Planning & Équipes</div>
-            <div id="sidebar-footer">v8.3 - &#169; Adrien Truc</div>
+            <div id="navPersonnel" class="nav-item" onclick="ShowPage('pagePersonnel')">Personnel</div>
+            <div id="sidebar-footer">SYSTEM v8.2 - SECURE EDITION</div>
         </div>
 
         <div id="content">
 
-                                                                                                                                    <div id="pageDashboard" class="page active">
-                <h2>Tableau de bord</h2>
-
-                <div id="dashTopRow" style="overflow:hidden; margin-bottom:16px;">
-                    <div style="float:left; width:44%; padding:0 8px; box-sizing:border-box;">
-                        <div id="cardEffectifs" class="card" style="padding:20px 18px; text-align:center; margin-bottom:0;">
-                            <div class="kpi-title">Effectifs Laroche</div>
-                            <div id="kpiTotal" class="kpi-main-value" style="color:#006698; margin-bottom:12px;">0</div>
-                            <div style="text-align:center; font-size:0;">
-                                <div class="kpi-block kpi-block-op" style="display:inline-block; float:none; font-size:13px;"><div class="kpi-sub-title" style="color:#3b82f6;">OP</div><div id="subOP" class="kpi-sub-value" style="color:#3b82f6;">0</div></div>
-                                <div class="kpi-block kpi-block-iq" style="display:inline-block; float:none; font-size:13px;"><div class="kpi-sub-title" style="color:#10b981;">IQ</div><div id="subIQ" class="kpi-sub-value" style="color:#10b981;">0</div></div>
-                                <div class="kpi-block kpi-block-st" style="display:inline-block; float:none; font-size:13px;"><div class="kpi-sub-title" style="color:#f59e0b;">ST</div><div id="subST" class="kpi-sub-value" style="color:#f59e0b;">0</div></div>
+            <div id="pageDashboard" class="page active">
+                <h2 style="margin-bottom: 25px;">Tableau de bord</h2>
+                
+                <div style="display: block; width: 100%; margin-left: -10px; margin-bottom: 25px; overflow: hidden;">
+                    
+                    <div style="float: left; width: 40%; padding: 0 10px;">
+                        <div class="card" style="height: 200px; margin-bottom: 0; padding: 20px; text-align: center;">
+                            <h3 class="kpi-title">👥 Effectifs Laroche</h3>
+                            <div id="kpiTotal" class="kpi-main-value" style="color: #0284c7;">0</div>
+                            <div style="display: block; width: 100%; margin-top: 15px; overflow: hidden;">
+                                <div style="float: left; width: 31%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                    <div class="kpi-sub-title">OP</div>
+                                    <div id="subOP" class="kpi-sub-value" style="color: #1e293b;">0</div>
+                                </div>
+                                <div style="float: left; width: 31%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                    <div class="kpi-sub-title">IQ</div>
+                                    <div id="subIQ" class="kpi-sub-value" style="color: #10b981;">0</div>
+                                </div>
+                                <div style="float: left; width: 31%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                    <div class="kpi-sub-title">ST</div>
+                                    <div id="subST" class="kpi-sub-value" style="color: #f59e0b;">0</div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div style="float:left; width:56%; padding:0 8px; box-sizing:border-box;">
-                        <div id="cardAide" class="card" style="padding:20px 18px; margin-bottom:0;">
-                            <div class="kpi-title" style="text-align:center; margin-bottom:12px;">Guide op&eacute;ratoire</div>
-                            <ul style="color:#475569; line-height:2.2; font-size:13px; margin:0; padding-left:18px;">
-                                <li><b>Cr&eacute;ation ICs</b> : Saisie et pouss&eacute;e automatique vers SAP QM01.</li>
-                                <li><b>Extract ICs</b> : Traitement de masse QM11 (D&eacute;but, Fin, Qualit&eacute;).</li>
-                                <li><b>Planning &amp; &Eacute;quipes</b> : Synchronisation des postes FAL et suivi MSN.</li>
-                                <li><b>Personnel</b> : Gestion des &eacute;quipes OP / IQ / ST par vacation.</li>
+                    
+                    <div style="float: left; width: 60%; padding: 0 10px;">
+                        <div class="card" style="height: 200px; margin-bottom: 0; padding: 20px; text-align: center;">
+                            <h3 class="kpi-title">📊 Statistiques d'Extraction ICs</h3>
+                            
+                            <div id="icStatsEmpty" style="margin-top: 45px; color: #94a3b8; font-style: italic; font-size: 14px;">
+                                Aucune extraction réalisée pour le moment.
+                            </div>
+                            
+                            <div id="icStatsContainer" style="display: none; width: 100%; overflow: hidden;">
+                                <div id="kpiTotalIC" class="kpi-main-value" style="font-size: 42px; font-weight: 800; color: #3b82f6; line-height: 1; margin-bottom: 15px;">0</div>
+                                <div style="display: block; width: 100%; margin-top: 15px; overflow: hidden;">
+                                    <div style="float: left; width: 18%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                        <div class="kpi-sub-title">INP</div>
+                                        <div id="statINP" class="kpi-sub-value" style="color: #64748b;">0</div>
+                                    </div>
+                                    <div style="float: left; width: 18%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                        <div class="kpi-sub-title">CRE</div>
+                                        <div id="statCRE" class="kpi-sub-value" style="color: #ef4444;">0</div>
+                                    </div>
+                                    <div style="float: left; width: 18%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                        <div class="kpi-sub-title">ACC</div>
+                                        <div id="statACC" class="kpi-sub-value" style="color: #10b981;">0</div>
+                                    </div>
+                                    <div style="float: left; width: 18%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                        <div class="kpi-sub-title">STA</div>
+                                        <div id="statSTA" class="kpi-sub-value" style="color: #0284c7;">0</div>
+                                    </div>
+                                    <div style="float: left; width: 18%; margin: 0 1%; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px 5px;">
+                                        <div class="kpi-sub-title">QCL</div>
+                                        <div id="statQCL" class="kpi-sub-value" style="color: #8b5cf6;">0</div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div style="clear: both;"></div>
+                </div>
+
+                <div style="display: block; width: 100%; margin-left: -10px;">
+                    <div style="float: left; width: 50%; padding: 0 10px;">
+                        <div class="card" style="height: 250px; margin-bottom: 0;">
+                            <h3 style="margin: 0; color: #0f172a; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">⚠️ Alertes Mouvements Avions</h3>
+                            <div id="containerAlertes" style="overflow-y: auto; height: 180px;"></div>
+                        </div>
+                    </div>
+                    
+                    <div style="float: left; width: 50%; padding: 0 10px;">
+                        <div class="card" style="height: 250px; margin-bottom: 0;">
+                            <h3 style="margin: 0; color: #0f172a; font-size: 16px; border-bottom: 2px solid #f1f5f9; padding-bottom: 10px; margin-bottom: 15px;">💡 Aide Mémoire</h3>
+                            <ul style="color: #475569; line-height: 1.8; font-size: 13px; margin: 0; padding-left: 20px;">
+                                <li><b>Création ICs</b> : Saisie et poussée automatique des fiches SAP.</li>
+                                <li><b>Extract ICs</b> : Traitement de masse QM11 en temps réel (Début, Fin, Qualité).</li>
+                                <li><b>Planning & Équipes</b> : Synchronisation automatique des postes FAL selon la base MSN.</li>
+                                <li><b>Personnel</b> : Gestion des équipes. Toute modification met à jour le dictionnaire du dashboard.</li>
                             </ul>
                         </div>
                     </div>
-                    <div style="clear:both;"></div>
-                </div>
-
-                <div id="dashBottomRow" style="overflow:hidden;">
-                    <div style="float:left; width:35%; padding:0 8px; box-sizing:border-box;">
-                        <div id="cardAlertes" class="card" style="margin-bottom:0;">
-                            <div class="kpi-title" style="text-align:left; margin-bottom:22px;">Alertes mouvements avions</div>
-                            <div id="containerAlertes" style="overflow-y:auto;"></div>
-                        </div>
-                    </div>
-                    <div style="float:left; width:65%; padding:0 8px; box-sizing:border-box;">
-                        <div id="cardStats" class="card" style="margin-bottom:0; padding:22px;">
-                            <div class="kpi-title" style="text-align:center; margin-bottom:4px;">Statistiques ICs</div>
-                            <div id="kpiTotalIC" class="kpi-main-value" style="color:#006698; margin-bottom:14px; text-align:center;">-</div>
-                            <div id="icStatsEmpty" style="color:#94a3b8; font-style:italic; font-size:14px; text-align:center;">Aucune extraction r&eacute;alis&eacute;e pour le moment.</div>
-<div id="icStatsContainer" style="display:none;">
-                            <div style="font-size:14px; font-weight:700; color:#334155; margin-bottom:10px; padding-left:2.5%;">Par statut</div>
-                            <div style="text-align:center; font-size:0; margin-bottom:6px;">
-                                <div style="display:inline-block; vertical-align:top; width:15%; margin:0 0.5% 8px; float:none; background:#f8fafc; border-top:3px solid #64748b; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">Non sign&eacute;e</div>
-                                    <div id="statINP" style="font-size:26px; font-weight:800; color:#64748b; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barINP" style="background:#64748b; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:15%; margin:0 0.5% 8px; float:none; background:#fff5f5; border-top:3px solid #E4342D; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#E4342D; margin-bottom:4px;">Annulation</div>
-                                    <div id="statANN" style="font-size:26px; font-weight:800; color:#E4342D; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barANN" style="background:#E4342D; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:15%; margin:0 0.5% 8px; float:none; background:#fffbeb; border-top:3px solid #f59e0b; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#f59e0b; margin-bottom:4px;">Retour t&acirc;che</div>
-                                    <div id="statRLT" style="font-size:26px; font-weight:800; color:#f59e0b; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barRLT" style="background:#f59e0b; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:15%; margin:0 0.5% 8px; float:none; background:#f0fdf4; border-top:3px solid #10b981; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#10b981; margin-bottom:4px;">D&eacute;but inter</div>
-                                    <div id="statACC" style="font-size:26px; font-weight:800; color:#10b981; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barACC" style="background:#10b981; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:15%; margin:0 0.5% 8px; float:none; background:#eff6ff; border-top:3px solid #006698; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#006698; margin-bottom:4px;">Fin inter</div>
-                                    <div id="statSTA" style="font-size:26px; font-weight:800; color:#006698; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barSTA" style="background:#006698; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:15%; margin:0 0.5% 8px; float:none; background:#faf5ff; border-top:3px solid #8b5cf6; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#8b5cf6; margin-bottom:4px;">Qualit&eacute;</div>
-                                    <div id="statQCL" style="font-size:26px; font-weight:800; color:#8b5cf6; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barQCL" style="background:#8b5cf6; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="clear:both;"></div>
-                            </div>
-                            <div style="font-size:14px; font-weight:700; color:#334155; margin-bottom:10px; padding-left:2.5%;">Par date</div>
-                            <div style="text-align:center; font-size:0;">
-                                <div style="display:inline-block; vertical-align:top; width:23%; margin:0 0.5% 8px; float:none; font-size:13px; background:#fff5f5; border-top:3px solid #E4342D; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center;">
-                                    <div style="font-size:11px; font-weight:600; color:#E4342D; margin-bottom:4px;">En retard</div>
-                                    <div id="statRetard" style="font-size:26px; font-weight:800; color:#E4342D; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barRetard" style="background:#E4342D; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:23%; margin:0 0.5% 8px; float:none; background:#f8fafc; border-top:3px solid #64748b; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#64748b; margin-bottom:4px;">Hier</div>
-                                    <div id="statHier" style="font-size:26px; font-weight:800; color:#64748b; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barHier" style="background:#64748b; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:23%; margin:0 0.5% 8px; float:none; background:#eff6ff; border-top:3px solid #006698; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#006698; margin-bottom:4px;">Aujourd&#39;hui</div>
-                                    <div id="statAuj" style="font-size:26px; font-weight:800; color:#006698; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barAuj" style="background:#006698; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="display:inline-block; vertical-align:top; width:23%; margin:0 0.5% 8px; float:none; background:#f0fdf4; border-top:3px solid #10b981; border-radius:7px; padding:10px 6px 6px; box-sizing:border-box; text-align:center; font-size:13px;">
-                                    <div style="font-size:11px; font-weight:600; color:#10b981; margin-bottom:4px;">&Agrave; venir</div>
-                                    <div id="statAVenir" style="font-size:26px; font-weight:800; color:#10b981; line-height:1; margin-bottom:6px;">0</div>
-                                    <div style="background:rgba(0,0,0,0.07); border-radius:3px; height:5px;">
-                                        <div id="barAVenir" style="background:#10b981; height:5px; border-radius:3px; width:0%;"></div>
-                                    </div>
-                                </div>
-                                <div style="clear:both;"></div>
-                            </div>
-                            <div style="display:none;" id="statENC">0</div>
-                            <div style="display:none;" id="statQCL2">0</div>
-                            <div style="display:none;" id="statSem">0</div>
-                            <div style="display:none;" id="barSem"></div>
-                            <div style="display:none;" id="statDem">0</div>
-                            <div style="display:none;" id="barDem"></div>
-                        </div>
-                        </div>
-                    </div>
-                    <div style="clear:both;"></div>
+                    <div style="clear: both;"></div>
                 </div>
             </div>
 
-<div id="pageCreation" class="page">
+            <div id="pageCreation" class="page">
                 <h2>Création des Intervention Cards</h2>
                 <div class="card" style="padding: 15px; margin-bottom: 20px;">
                     <table class="form-table" style="width: 100%; border-collapse: collapse;">
@@ -2391,7 +2041,7 @@
                             <td style="padding: 0; vertical-align: bottom; text-align: right;">
                                 <div style="white-space: nowrap; height: 38px; float: right;">
                                     <button class="btn-toolbar" style="background-color: #0284c7; width: 120px; margin-left: 8px;" onclick="LancerCreationSAP(this)">Lancer</button>
-                                    <button class="btn-toolbar btn-cancel" id="btnResetCreation" style="margin-left: 8px;" onclick="ReinitialiserTableauCreation()">Réinitialiser</button>
+                                    <button class="btn-toolbar btn-cancel" id="btnResetCreation" style="margin-left: 8px;" onclick="ReinitialiserTableauCreation()">🔄 Réinitialiser</button>
                                     <button class="btn-toolbar btn-add" id="btnAddNewCreation" style="margin-left: 8px; width: 38px; padding: 0; font-size: 16px;" onclick="AjouterLigneSaisieIC()">➕</button>
                                     <button class="btn-toolbar btn-delete-mode" id="btnDeleteModeToggleCreation" style="margin-left: 8px; width: 38px; padding: 0; font-size: 16px;" onclick="EnableDeleteModeCreation()">🗑️</button>
                                     <button class="btn-toolbar" id="btnCopyCreation" style="background-color: #8b5cf6; margin-left: 8px; width: 38px; padding: 0; font-size: 16px;" onclick="CopierICs()">📋</button>
@@ -2406,12 +2056,12 @@
                 <table class="excel-table" id="tableSaisieCreation">
                     <thead>
                         <tr>
-                            <th id="thSelectionCreation" class="col-select" style="display:none; width: 0%;">Sélect.</th>
-                            <th style="background-color: #fcd5b4; width: 4%; text-align: center;">MSN</th>
-                            <th style="background-color: #c5d9f1; width: 7%; text-align: center;">Numéro OF</th>
-                            <th style="width: 49%; text-align: center;">Description</th>
-                            <th style="background-color: #fff2cc; width: 6%; text-align: center;">Zone interv.</th>
-                            <th style="background-color: #fff2cc; width: 6%; text-align: center;">Zone avion</th>
+                            <th id="thSelectionCreation" class="col-select" style="display:none; width: 3%;">Sélect.</th>
+                            <th style="background-color: #fcd5b4; width: 5%; text-align: center;">MSN</th>
+                            <th style="background-color: #c5d9f1; width: 8%; text-align: center;">Numéro OF</th>
+                            <th style="width: 38%; text-align: center;">Description</th>
+                            <th style="background-color: #fff2cc; width: 7%; text-align: center;">Zone interv.</th>
+                            <th style="background-color: #fff2cc; width: 7%; text-align: center;">Zone avion</th>
                             <th style="background-color: #e2efda; width: 3%; text-align: center;">QLS</th>
                             <th style="background-color: #e2efda; width: 3%; text-align: center;">NDT</th>
                             <th style="background-color: #e2efda; width: 3%; text-align: center;">P-OFF</th>
@@ -2419,7 +2069,7 @@
                             <th style="background-color: #e2efda; width: 3%; text-align: center;">VSD</th>
                             <th style="background-color: #e2efda; width: 3%; text-align: center;">RLQ1</th>
                             <th style="background-color: #e2efda; width: 3%; text-align: center;">RLQ2</th>
-                            <th style="background-color: #e2e8f0; width: 10%; text-align: center;">Numéro IC</th>
+                            <th style="background-color: #e2e8f0; width: 11%; text-align: center;">Numéro IC</th>
                         </tr>
                     </thead>
                     <tbody id="tbodySaisieCreation"></tbody>
@@ -2445,86 +2095,80 @@
                             <td style="border: none; text-align: right; padding: 0; background: transparent; vertical-align: bottom; position: relative;">
                                 <div id="divExtractActions" style="display: none; height: 38px; float: right;">
                                     <div id="vueActionsMenu" style="display: inline-block;">
-                                        <button class="btn-toolbar" style="background-color:#ef4444; margin-right:5px;" onclick="PreparerAction('ANNULER')">Annuler</button>
-                                        <button class="btn-toolbar" style="background-color:#10b981; margin-right:5px;" onclick="PreparerAction('DEBUT')">Début inter</button>
-                                        <button class="btn-toolbar" style="background-color:#0284c7; margin-right:5px;" onclick="PreparerAction('FIN')">Fin inter</button>
-                                        <button class="btn-toolbar" style="background-color:#8b5cf6;" onclick="PreparerAction('QUALITE')">Qualité</button>
+                                        <button class="btn-toolbar" style="background-color:#ef4444; margin-right:5px;" onclick="PreparerAction('ANNULER')">❌ Annuler</button>
+                                        <button class="btn-toolbar" style="background-color:#10b981; margin-right:5px;" onclick="PreparerAction('DEBUT')">▶️ Début inter</button>
+                                        <button class="btn-toolbar" style="background-color:#0284c7; margin-right:5px;" onclick="PreparerAction('FIN')">⏹️ Fin inter</button>
+                                        <button class="btn-toolbar" style="background-color:#8b5cf6;" onclick="PreparerAction('QUALITE')">⭐ Qualité</button>
                                     </div>
                                     <div id="vueActionsConfirm" style="display: none;">
-                                        <button class="btn-toolbar btn-cancel" style="margin-right:5px;" onclick="AnnulerFiltreAction()">Retour</button>
-                                        <button id="btnConfirmActionExec" class="btn-toolbar" style="background-color:#059669;" onclick="ConfirmerExecution()">Exécution</button>
+                                        <button class="btn-toolbar btn-cancel" style="margin-right:5px;" onclick="AnnulerFiltreAction()">🔙 Retour</button>
+                                        <button id="btnConfirmActionExec" class="btn-toolbar" style="background-color:#059669;" onclick="ConfirmerExecution()">🚀 Exécution</button>
                                     </div>
                                     <div id="vueActionsRunning" style="display: none;">
-                                        <button id="btnStopAction" class="btn-toolbar btn-delete-mode" onclick="StopAction()">Arrêter</button>
+                                        <button id="btnStopAction" class="btn-toolbar btn-delete-mode" onclick="StopAction()">🛑 Arrêter</button>
                                     </div>
                                 </div>
                             </td>
                         </tr>
                     </table>
                 </div>
-                <div id="resultatExtraction" style="display: none;"></div>
                 <div id="divExtractResultsContainer" style="display: none;"></div>
             </div>
 
             <div id="pagePlanningEquipes" class="page">
-                <h2 style="display:inline;">Planning MSN & Équipes</h2>
-                <div style="float:right; margin-top:5px;">
-                    <button id="btnModifierPlanning" onclick="ToggleEditMode()" class="btn-toolbar btn-add">Modifier</button>
-                    <button id="btnValidateEdit" onclick="SaveAndExitEditMode()" class="btn-toolbar btn-add" style="display:none; margin-left:10px;">Valider</button>
-                    <button id="btnCancelEdit" onclick="CancelEditMode()" class="btn-toolbar btn-cancel" style="display:none; margin-left:5px;">Annuler</button>
-                </div>
-                <div style="clear:both; margin-bottom:20px;"></div>
-                <div id="viewModePlanningEquipes" style="display: block; width: 100%; margin-left: -10px;">
+                <h2>Planning MSN & Équipes</h2>
+                <div style="display: block; width: 100%; margin-left: -10px;">
                     <div style="float: left; width: 31%; padding: 0 10px;">
-                        <div class="card" style="margin-bottom:0; padding: 15px 15px 20px 15px;">
+                        <div class="card" style="margin-bottom:0; padding: 15px;">
                             <div style="border-bottom:1px solid #e2e8f0; padding-bottom:10px; margin-bottom: 15px; overflow:hidden;">
-                                <h3 style="margin:0; color:#0f172a; font-size:16px; text-align:center;">Planning MSN</h3>
+                                <h3 style="margin:0; color:#0f172a; font-size:16px; float:left;">Planning MSN</h3>
                             </div>
                             <table class="excel-table" id="tablePlanningMSN" style="width: 100%; table-layout: fixed; margin-top:0;">
-                                <thead><tr><th style="width: 35%; text-align: center; padding: 10px 0;">Date sortie</th><th style="width: 35%; text-align: center; padding: 10px 0;">Poste avion</th><th style="width: 30%; text-align: center; padding: 10px 0;">MSN</th></tr></thead>
+                                <thead><tr><th style="width: 30%; text-align: center; padding: 10px 0;">MSN</th><th style="width: 35%; text-align: center; padding: 10px 0;">Poste Avion</th><th style="width: 35%; text-align: center; padding: 10px 0;">Date Sortie</th></tr></thead>
                                 <tbody id="tbodyMSN"></tbody>
                             </table>
                         </div>
                     </div>
                     <div style="float: left; width: 23%; padding: 0 10px;">
-                        <div class="card" style="margin-bottom:0; padding: 15px 15px 20px 15px;">
+                        <div class="card" style="margin-bottom:0; padding: 15px;">
                             <h3 style="margin-top:0; color:#0284c7; font-size:16px; border-bottom:1px solid #cbd5e1; padding-bottom:8px; text-align:center;">Équipe 1</h3>
-                            <table class="excel-table" style="width: 100%; table-layout: fixed; margin-top: 0;"><thead><tr><th class="col-poste-equipe" style="text-align:center;">Poste</th><th style="padding: 10px 5px; text-align:center;">Nom</th></tr></thead><tbody id="tbodyEquipe1"></tbody></table>
+                            <table class="excel-table" style="width: 100%; table-layout: fixed; margin-top: 0;"><thead><tr><th class="col-poste-equipe">Poste</th><th style="padding: 10px 5px;">Nom</th></tr></thead><tbody id="tbodyEquipe1"></tbody></table>
                         </div>
                     </div>
                     <div style="float: left; width: 23%; padding: 0 10px;">
-                        <div class="card" style="margin-bottom:0; padding: 15px 15px 20px 15px;">
+                        <div class="card" style="margin-bottom:0; padding: 15px;">
                             <h3 style="margin-top:0; color:#e67e22; font-size:16px; border-bottom:1px solid #cbd5e1; padding-bottom:8px; text-align:center;">Équipe 2</h3>
-                            <table class="excel-table" style="width: 100%; table-layout: fixed; margin-top: 0;"><thead><tr><th class="col-poste-equipe" style="text-align:center;">Poste</th><th style="padding: 10px 5px; text-align:center;">Nom</th></tr></thead><tbody id="tbodyEquipe2"></tbody></table>
+                            <table class="excel-table" style="width: 100%; table-layout: fixed; margin-top: 0;"><thead><tr><th class="col-poste-equipe">Poste</th><th style="padding: 10px 5px;">Nom</th></tr></thead><tbody id="tbodyEquipe2"></tbody></table>
                         </div>
                     </div>
                     <div style="float: left; width: 23%; padding: 0 10px;">
-                        <div class="card" style="margin-bottom:0; padding: 15px 15px 20px 15px;">
+                        <div class="card" style="margin-bottom:0; padding: 15px;">
                             <h3 style="margin-top:0; color:#7c3aed; font-size:16px; border-bottom:1px solid #cbd5e1; padding-bottom:8px; text-align:center;">Équipe 3</h3>
-                            <table class="excel-table" style="width: 100%; table-layout: fixed; margin-top: 0;"><thead><tr><th class="col-poste-equipe" style="text-align:center;">Poste</th><th style="padding: 10px 5px; text-align:center;">Nom</th></tr></thead><tbody id="tbodyEquipe3"></tbody></table>
+                            <table class="excel-table" style="width: 100%; table-layout: fixed; margin-top: 0;"><thead><tr><th class="col-poste-equipe">Poste</th><th style="padding: 10px 5px;">Nom</th></tr></thead><tbody id="tbodyEquipe3"></tbody></table>
                         </div>
                     </div>
                     <div style="clear: both;"></div>
                 </div>
+            </div>
 
+            <div id="pagePersonnel" class="page">
+                <h2>Gestion du Personnel</h2>
+                <div class="card">
+                    <div id="personnelButtonsContainer" style="margin-bottom: 20px;">
+                        <button class="btn-toolbar btn-add" id="btnAddNew" onclick="AjouterLignePersonnel()">+ Ajouter</button>
+                        <button class="btn-toolbar btn-delete-mode" id="btnDeleteModeToggle" onclick="EnableDeleteMode()">🗑️ Supprimer</button>
+                        <button class="btn-toolbar btn-add" id="btnConfirmDelete" style="display:none;" onclick="ConfirmDelete()">Suppression</button>
+                        <button class="btn-toolbar btn-cancel" id="btnCancelDelete" style="display:none;" onclick="CancelDeleteMode()">Annuler</button>
+                    </div>
+                    <table class="excel-table">
+                        <thead><tr><th id="thSelection" class="col-select" style="display:none;">Sélect.</th><th width="25%">Nom</th><th width="25%">Prénom</th><th width="25%">Poste</th><th width="25%">Équipe</th></tr></thead>
+                        <tbody id="tbodyPersonnel"></tbody>
+                    </table>
+                </div>
             </div>
 
             <div style="height: 80px; width: 100%;"></div>
         </div>
     </div>
-
-    <!-- Inputs cachés pour passer les paramètres VBScript -->
-    <input type="hidden" id="vbs_param_dateStart" />
-    <input type="hidden" id="vbs_param_dateEnd" />
-    <input type="hidden" id="vbs_param_resultContainer" />
-    <input type="hidden" id="vbs_param_date" />
-    <input type="hidden" id="vbs_param_vacation" />
-    <input type="hidden" id="vbs_param_equipe" />
-    <input type="hidden" id="vbs_param_data" />
-    <input type="hidden" id="vbs_param_op" />
-    <input type="hidden" id="vbs_param_iq" />
-    <input type="hidden" id="vbs_param_st" />
-    <input type="hidden" id="vbs_param_rowIndex" />
-    <input type="hidden" id="vbs_param_icNum" />
-    <input type="hidden" id="vbs_param_action" /></body>
+</body>
 </html>
