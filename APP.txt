@@ -162,38 +162,14 @@
         Function GetSAPSession()
             On Error Resume Next
             Set GetSAPSession = Nothing
-            Dim SapGuiAuto, appSAP, conn, attempt
-            
-            For attempt = 1 To 3
-                Set SapGuiAuto = GetObject("SAPGUI")
-                If Err.Number <> 0 Then 
-                    If attempt = 3 Then
-                        MsgBox "ERREUR FATALE: GetObject(SAPGUI) échoue" & vbCrLf & vbCrLf & "Solutions:" & vbCrLf & "1. SAP GUI Scripting doit être activé" & vbCrLf & "2. Ouvrez SAP et naviguez vers une transaction" & vbCrLf & "3. Relancez l'extraction", 16, "Diagnostic: SAPGUI"
-                    End If
-                    Err.Clear
-                Else
-                    Set appSAP = SapGuiAuto.GetScriptingEngine
-                    If appSAP.Children.Count = 0 Then 
-                        If attempt = 3 Then
-                            MsgBox "ERREUR: Aucune connexion SAP trouvée" & vbCrLf & vbCrLf & "Solutions:" & vbCrLf & "1. Ouvrez une session SAP" & vbCrLf & "2. Connectez-vous avec vos identifiants" & vbCrLf & "3. Naviguez à une transaction (ex: QM11)" & vbCrLf & "4. Relancez l'extraction", 16, "Diagnostic: Connexion"
-                        End If
-                        Err.Clear
-                    Else
-                        Set conn = appSAP.Children(0)
-                        If conn.Children.Count = 0 Then 
-                            If attempt = 3 Then
-                                MsgBox "ERREUR: Aucune fenêtre SAP trouvée" & vbCrLf & vbCrLf & "Solutions:" & vbCrLf & "1. Ouvrez une transaction SAP" & vbCrLf & "2. Par exemple: Naviguez vers QM11" & vbCrLf & "3. Relancez l'extraction", 16, "Diagnostic: Fenêtre"
-                            End If
-                            Err.Clear
-                        Else
-                            Set GetSAPSession = conn.Children(0)
-                            On Error GoTo 0
-                            Exit Function
-                        End If
-                    End If
-                End If
-                Call PauseVBS(2)
-            Next
+            Dim SapGuiAuto, appSAP, conn
+            Set SapGuiAuto = GetObject("SAPGUI")
+            If Err.Number <> 0 Then Exit Function
+            Set appSAP = SapGuiAuto.GetScriptingEngine
+            If appSAP.Children.Count = 0 Then Exit Function
+            Set conn = appSAP.Children(0)
+            If conn.Children.Count = 0 Then Exit Function
+            Set GetSAPSession = conn.Children(0)
             On Error GoTo 0
         End Function
 
@@ -282,7 +258,7 @@
             On Error GoTo 0
         End Function
 
-        Function VBS_ExecuterActionSpecifique(icNum, actionType)
+        Function callVBSExecuterAction(icNum, actionType)
             Dim res
             WriteLog "------------------------------------------"
             WriteLog "TRAITEMENT SPECIFIQUE IC : " & icNum & " | Action: " & actionType
@@ -546,7 +522,7 @@
             On Error GoTo 0
         End function
 
-        Function VBS_CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
+        Function callVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
             Dim arrRows, i, rowData, arrFields, y, r, msn, numOF, fullDesc, zoneI, zoneA, chkBox, strPoste
             Dim resultString, createdIC, reponseMsgBox, Texte, DescPart, Titre, H1, H2, PosteSAP, DistribSAP
             Dim arrOP, arrIQ, arrST, countOP, countIQ, countST, NB_INTER, rIndex, rObj, rText, dateSapFormat
@@ -883,7 +859,7 @@
             VBS_CreerICs = resultString
         End Function
 
-        Function VBS_LancerSAP(strDateDebutSAP, strDateFinSAP)
+        Function callVBSLancerSAP(strDateDebutSAP, strDateFinSAP)
             Dim exportPath, fso, wsh, folderPath, fileName, popupCheck
             Dim maxRetries, currentRetry, fileReady, ts, fileContent
             Dim arrLines, iLine, strLine, regEx, arrCols, finalArr()
@@ -1071,6 +1047,34 @@
     </script>
 
     <script language="javascript">
+        // ==================== GLOBAL WRAPPER FUNCTIONS ====================
+        // Ces fonctions exposent les VBScript functions au JavaScript
+        // Elles sont définies ICI et appelées par le JavaScript plus bas
+        function callVBSLancerSAP(dateStart, dateEnd) {
+            try {
+                return callVBSLancerSAP(dateStart, dateEnd);
+            } catch(e) {
+                return "<div class='msg-box msg-error'>ERREUR: VBS_LancerSAP indéfini. Rechargez l'application.</div>";
+            }
+        }
+        
+        function callVBSCreerICs(date, vacation, equipe, data, op, iq, st) {
+            try {
+                return callVBSCreerICs(date, vacation, equipe, data, op, iq, st);
+            } catch(e) {
+                return "ERREUR: VBS_CreerICs - " + e;
+            }
+        }
+        
+        function callVBSExecuterAction(icNum, action) {
+            try {
+                return callVBSExecuterAction(icNum, action);
+            } catch(e) {
+                return "ERREUR: VBS_ExecuterActionSpecifique - " + e;
+            }
+        }
+        // ==================== FIN GLOBAL WRAPPERS ====================
+
         var VERSION_ACTUELLE = "8.3"; 
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/9158de12ec4159774acec4956728945e/raw/IcManager.txt";
         var URL_TELECHARGEMENT_APP = "https://drive.google.com/file/d/1mZaDZqVggQ82yAtysOg5CFScVBtdaTft/view?usp=drive_link";
@@ -1643,7 +1647,7 @@
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    var resultStr = callVBSCreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -1836,7 +1840,7 @@
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    var resultatHTML = VBS_LancerSAP(dSapStart, dSapEnd);
+                    var resultatHTML = callVBSLancerSAP(dSapStart, dSapEnd);
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -1905,7 +1909,7 @@
             var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    var res = VBS_ExecuterActionSpecifique(icNum, type);
+                    var res = callVBSExecuterAction(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
