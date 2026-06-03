@@ -1719,7 +1719,7 @@
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    callVBSCreation(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST, rowItem.index); var resultStr = document.getElementById("tableCreateBody").rows[rowItem.index].cells[13].innerHTML || "";
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -1981,7 +1981,7 @@
             var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    var res = VBS_ExecuterActionSpecifique(icNum, type);
+                    callVBSAction(icNum, type); var res = tr.cells[5].innerHTML || "";
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
