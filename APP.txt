@@ -1050,17 +1050,28 @@
         
         Sub HandleExtractionRequest()
             On Error Resume Next
-            Dim dateStart, dateEnd, resultHTML
+            Dim dateStart, dateEnd, resultHTML, resultElement
+            
             dateStart = document.getElementById("vbs_param_dateStart").value
             dateEnd = document.getElementById("vbs_param_dateEnd").value
+            
             If dateStart = "" Or dateEnd = "" Then
-                document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
+                Set resultElement = document.getElementById("resultatExtraction")
+                If Not resultElement Is Nothing Then
+                    resultElement.innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
+                End If
                 Exit Sub
             End If
+            
             resultHTML = VBS_LancerSAP(dateStart, dateEnd)
+            
             If resultHTML <> "" Then
-                document.getElementById("resultatExtraction").innerHTML = resultHTML
+                Set resultElement = document.getElementById("resultatExtraction")
+                If Not resultElement Is Nothing Then
+                    resultElement.innerHTML = resultHTML
+                End If
             End If
+            
             On Error GoTo 0
         End Sub
 
@@ -2451,6 +2462,7 @@
                         </tr>
                     </table>
                 </div>
+                <div id="resultatExtraction" style="display: none;"></div>
                 <div id="divExtractResultsContainer" style="display: none;"></div>
             </div>
 
