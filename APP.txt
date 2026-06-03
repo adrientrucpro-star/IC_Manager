@@ -258,7 +258,7 @@
             On Error GoTo 0
         End Function
 
-        Function callVBSExecuterAction(icNum, actionType)
+        Function VBS_ExecuterActionSpecifique(icNum, actionType)
             Dim res
             WriteLog "------------------------------------------"
             WriteLog "TRAITEMENT SPECIFIQUE IC : " & icNum & " | Action: " & actionType
@@ -522,7 +522,7 @@
             On Error GoTo 0
         End function
 
-        Function callVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
+        Function VBS_CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
             Dim arrRows, i, rowData, arrFields, y, r, msn, numOF, fullDesc, zoneI, zoneA, chkBox, strPoste
             Dim resultString, createdIC, reponseMsgBox, Texte, DescPart, Titre, H1, H2, PosteSAP, DistribSAP
             Dim arrOP, arrIQ, arrST, countOP, countIQ, countST, NB_INTER, rIndex, rObj, rText, dateSapFormat
@@ -859,7 +859,7 @@
             VBS_CreerICs = resultString
         End Function
 
-        Function callVBSLancerSAP(strDateDebutSAP, strDateFinSAP)
+        Function VBS_LancerSAP(strDateDebutSAP, strDateFinSAP)
             Dim exportPath, fso, wsh, folderPath, fileName, popupCheck
             Dim maxRetries, currentRetry, fileReady, ts, fileContent
             Dim arrLines, iLine, strLine, regEx, arrCols, finalArr()
@@ -1047,72 +1047,48 @@
     </script>
 
     <script language="javascript">
-    // ==================== WRAPPERS POUR APPELER VBSCRIPT ====================
-    // Utilise window.execScript qui est la seule méthode fiable en HTA
+    // ==================== PATTERN: Inputs Cachés pour communiquer avec VBScript ====================
+    // Stratégie: JavaScript remplit les inputs cachés, puis déclenche les fonctions VBScript
     
-    function callVBSLancerSAP(dateStart, dateEnd) {
+    function callVBSExtraction(dateStart, dateEnd) {
         try {
-            // Nettoyer les dates pour éviter les injections
-            dateStart = String(dateStart).replace(/'/g, "''");
-            dateEnd = String(dateEnd).replace(/'/g, "''");
+            // Remplir les inputs cachés avec les paramètres
+            document.getElementById("vbs_param_dateStart").value = dateStart;
+            document.getElementById("vbs_param_dateEnd").value = dateEnd;
             
-            var result = "";
-            var code = "On Error Resume Next\n" +
-                       "result = callVBSLancerSAP('" + dateStart + "', '" + dateEnd + "')\n" +
-                       "If Err.Number <> 0 Then\n" +
-                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
-                       "End If\n" +
-                       "On Error GoTo 0";
-            
-            window.execScript(code, "VBScript");
-            return result;
+            // Déclencher la fonction VBScript
+            // En HTA, on peut appeler directement les fonctions VBScript
+            HandleExtractionRequest();
         } catch(e) {
-            return "<div class='msg-box msg-error'>ERREUR JavaScript: " + e.message + "</div>";
+            document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Erreur: " + e.message + "</div>";
         }
     }
     
-    function callVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST) {
+    function callVBSCreation(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex) {
         try {
-            strDate = String(strDate).replace(/'/g, "''");
-            strVacation = String(strVacation).replace(/'/g, "''");
-            strEquipe = String(strEquipe).replace(/'/g, "''");
-            strData = String(strData).replace(/'/g, "''");
-            strOP = String(strOP).replace(/'/g, "''");
-            strIQ = String(strIQ).replace(/'/g, "''");
-            strST = String(strST).replace(/'/g, "''");
+            document.getElementById("vbs_param_date").value = dateStr;
+            document.getElementById("vbs_param_vacation").value = vacation;
+            document.getElementById("vbs_param_equipe").value = equipe;
+            document.getElementById("vbs_param_data").value = dataStr;
+            document.getElementById("vbs_param_op").value = opStr;
+            document.getElementById("vbs_param_iq").value = iqStr;
+            document.getElementById("vbs_param_st").value = stStr;
+            document.getElementById("vbs_param_rowIndex").value = rowIndex;
             
-            var result = "";
-            var code = "On Error Resume Next\n" +
-                       "result = callVBSCreerICs('" + strDate + "', '" + strVacation + "', '" + strEquipe + "', '" + strData + "', '" + strOP + "', '" + strIQ + "', '" + strST + "')\n" +
-                       "If Err.Number <> 0 Then\n" +
-                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
-                       "End If\n" +
-                       "On Error GoTo 0";
-            
-            window.execScript(code, "VBScript");
-            return result;
+            HandleCreationRequest();
         } catch(e) {
-            return "ERREUR JavaScript: " + e.message;
+            console.error("Erreur VBScript Creation: " + e.message);
         }
     }
     
-    function callVBSExecuterAction(icNum, actionType) {
+    function callVBSAction(icNum, actionType) {
         try {
-            icNum = String(icNum).replace(/'/g, "''");
-            actionType = String(actionType).replace(/'/g, "''");
+            document.getElementById("vbs_param_icNum").value = icNum;
+            document.getElementById("vbs_param_action").value = actionType;
             
-            var result = "";
-            var code = "On Error Resume Next\n" +
-                       "result = callVBSExecuterAction('" + icNum + "', '" + actionType + "')\n" +
-                       "If Err.Number <> 0 Then\n" +
-                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
-                       "End If\n" +
-                       "On Error GoTo 0";
-            
-            window.execScript(code, "VBScript");
-            return result;
+            HandleActionRequest();
         } catch(e) {
-            return "ERREUR JavaScript: " + e.message;
+            console.error("Erreur VBScript Action: " + e.message);
         }
     }
 
@@ -1688,7 +1664,7 @@
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    var resultStr = callVBSCreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    callVBSCreation(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -1881,7 +1857,7 @@
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    var resultatHTML = callVBSLancerSAP(dSapStart, dSapEnd);
+                    callVBSExtraction(dSapStart, dSapEnd); var resultatHTML = document.getElementById('resultatExtraction').innerHTML;
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -1950,7 +1926,7 @@
             var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    var res = callVBSExecuterAction(icNum, type);
+                    callVBSAction(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
@@ -2137,7 +2113,94 @@
             // Lancement du contrôle des droits
             DemarrerVerificationSysteme();
         };
-    </script>
+    
+        ' ==================== WRAPPERS VBScript - PATTERN AVEC INPUTS CACHÉS ====================
+        ' Les fonctions VBScript lisent les paramètres dans les inputs cachés
+        ' et mettent à jour l'UI directement
+
+        Sub HandleExtractionRequest()
+            On Error Resume Next
+            Dim dateStart, dateEnd, resultHTML
+            
+            ' Lire les paramètres depuis les inputs cachés
+            dateStart = document.getElementById("vbs_param_dateStart").value
+            dateEnd = document.getElementById("vbs_param_dateEnd").value
+            
+            If dateStart = "" Or dateEnd = "" Then
+                document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
+                Exit Sub
+            End If
+            
+            ' Appeler la vraie fonction VBScript
+            resultHTML = VBS_LancerSAP(dateStart, dateEnd)
+            
+            ' Mettre à jour l'UI
+            If resultHTML <> "" Then
+                document.getElementById("resultatExtraction").innerHTML = resultHTML
+            End If
+            
+            On Error GoTo 0
+        End Sub
+
+        Sub HandleCreationRequest()
+            On Error Resume Next
+            Dim dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex
+            Dim resultStr, tbody, cellDiv
+            
+            ' Lire les paramètres
+            dateStr = document.getElementById("vbs_param_date").value
+            vacation = document.getElementById("vbs_param_vacation").value
+            equipe = document.getElementById("vbs_param_equipe").value
+            dataStr = document.getElementById("vbs_param_data").value
+            opStr = document.getElementById("vbs_param_op").value
+            iqStr = document.getElementById("vbs_param_iq").value
+            stStr = document.getElementById("vbs_param_st").value
+            rowIndex = CInt(document.getElementById("vbs_param_rowIndex").value)
+            
+            ' Appeler la vraie fonction VBScript
+            resultStr = VBS_CreerICs(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr)
+            
+            ' Mettre à jour l'UI
+            Set tbody = document.getElementById("tableCreateBody")
+            If Not tbody Is Nothing And rowIndex >= 0 And rowIndex < tbody.rows.length Then
+                Set cellDiv = tbody.rows(rowIndex).cells(13)
+                If Not cellDiv Is Nothing Then
+                    If InStr(resultStr, "ERREUR") > 0 Or InStr(resultStr, "Annulé") > 0 Then
+                        cellDiv.innerHTML = "<span style='color:#b91c1c;'>" & resultStr & "</span>"
+                        tbody.rows(rowIndex).style.backgroundColor = "#fee2e2"
+                    Else
+                        cellDiv.innerHTML = resultStr
+                        tbody.rows(rowIndex).style.backgroundColor = "#dcfce7"
+                    End If
+                End If
+            End If
+            
+            On Error GoTo 0
+        End Sub
+
+        Sub HandleActionRequest()
+            On Error Resume Next
+            Dim icNum, actionType, resultStr, tbody, tr
+            
+            ' Lire les paramètres
+            icNum = document.getElementById("vbs_param_icNum").value
+            actionType = document.getElementById("vbs_param_action").value
+            
+            If icNum = "" Or actionType = "" Then Exit Sub
+            
+            ' Appeler la vraie fonction VBScript
+            resultStr = VBS_ExecuterActionSpecifique(icNum, actionType)
+            
+            ' Mettre à jour l'UI - chercher la ligne du tableau
+            Set tbody = document.getElementById("resultatExtraction").querySelector("tbody")
+            If Not tbody Is Nothing Then
+                ' Chercher la ligne correspondante par IC number
+                ' et mettre à jour la colonne action
+            End If
+            
+            On Error GoTo 0
+        End Sub
+</script>
 </head>
 <body>
 
@@ -2469,5 +2532,27 @@
             <div style="height: 80px; width: 100%;"></div>
         </div>
     </div>
+
+    <!-- Inputs cachés pour passer les paramètres VBScript -->
+    <input type="hidden" id="vbs_param_dateStart" />
+    <input type="hidden" id="vbs_param_dateEnd" />
+    <input type="hidden" id="vbs_param_resultContainer" />
+    
+    <input type="hidden" id="vbs_param_date" />
+    <input type="hidden" id="vbs_param_vacation" />
+    <input type="hidden" id="vbs_param_equipe" />
+    <input type="hidden" id="vbs_param_data" />
+    <input type="hidden" id="vbs_param_op" />
+    <input type="hidden" id="vbs_param_iq" />
+    <input type="hidden" id="vbs_param_st" />
+    <input type="hidden" id="vbs_param_rowIndex" />
+    
+    <input type="hidden" id="vbs_param_icNum" />
+    <input type="hidden" id="vbs_param_action" />
+    
+    <!-- Boutons cachés qui déclenchent les fonctions VBScript -->
+    <input type="hidden" id="vbs_trigger_extraction" />
+    <input type="hidden" id="vbs_trigger_creation" />
+    <input type="hidden" id="vbs_trigger_action" />
 </body>
 </html>
