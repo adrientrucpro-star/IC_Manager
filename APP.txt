@@ -1132,7 +1132,7 @@
         function escapeHtml(text) {
             if (!text) return "";
             var div = document.createElement('div');
-            div.textContent = text;
+            div.innerText = text;
             return div.innerHTML;
         }
 
@@ -1341,9 +1341,9 @@
                     var dateCell   = rows[r].cells[4];
                     var actionCell = rows[r].cells[5];
                     if (!statCell) continue;
-                    var s = NettoyerChaine(statCell.textContent);
-                    var a = actionCell ? NettoyerChaine(actionCell.textContent) : "";
-                    var dRaw = dateCell ? NettoyerChaine(dateCell.textContent) : "";
+                    var s = NettoyerChaine(statCell.innerText);
+                    var a = actionCell ? NettoyerChaine(actionCell.innerText) : "";
+                    var dRaw = dateCell ? NettoyerChaine(dateCell.innerText) : "";
                     var dParsed = parseSAPDate(dRaw);
                     totalExtract++;
                     if (s === "INP") stats.INP++;
@@ -1579,7 +1579,7 @@
         }
 
         function CopierUnIC(el) {
-            var val = el.innerText || el.textContent; val = NettoyerChaine(val);
+            var val = el.innerText; val = NettoyerChaine(val);
             if (val && val !== "---" && window.clipboardData) {
                 window.clipboardData.setData("Text", val);
                 var oldBg = el.style.backgroundColor; el.style.backgroundColor = "#bbf7d0"; 
@@ -1591,7 +1591,7 @@
             var tbody = document.getElementById("tbodySaisieCreation"); var icList = []; var hasICs = false;
             for (var i = 0; i < tbody.rows.length; i++) {
                 var cellDiv = tbody.rows[i].cells[13].querySelector('div'); var val = "";
-                if (cellDiv) { val = cellDiv.innerText || cellDiv.textContent; val = val.trim(); }
+                if (cellDiv) { val = cellDiv.innerText; val = val.replace(/^\s+|\s+$/g, ""); }
                 if (val === "---") val = ""; icList.push(val); if (val !== "") hasICs = true;
             }
             if (!hasICs) return;
@@ -1616,7 +1616,7 @@
                     var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
-                        if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
+                        if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.innerText = resultStr; }
                     } else { stopCreationFlag = true; if(resultStr.indexOf("Annulé") === -1) alert(resultStr); }
                 } catch(e) { stopCreationFlag = true; alert("Erreur locale : " + e.message); }
                 TraiterCreationLigneSuivante(currentIndex + 1, validRowsData, dateSouhaitee, vacation, equipe, strOP, strIQ, strST, btnElement, oldText);
@@ -1644,12 +1644,12 @@
             var chkNames = ["QLS", "NDT", "P-OFF", "ST", "VSD", "RLQ1", "RLQ2"];
             for (var i = 0; i < tbody.rows.length; i++) {
                 var row = tbody.rows[i];
-                var msn = row.cells[1].querySelector('input').value.trim().toUpperCase();
-                var numOF = row.cells[2].querySelector('input').value.trim();
-                var desc = row.cells[3].querySelector('input').value.trim();
+                var msn = row.cells[1].querySelector('input').value.replace(/^\s+|\s+$/g, "").toUpperCase();
+                var numOF = row.cells[2].querySelector('input').value.replace(/^\s+|\s+$/g, "");
+                var desc = row.cells[3].querySelector('input').value.replace(/^\s+|\s+$/g, "");
                 var zoneI = row.cells[4].querySelector('select').value;
                 var zoneA = row.cells[5].querySelector('select').value;
-                var existingIC = row.cells[13].querySelector('div').innerText || row.cells[13].querySelector('div').textContent;
+                var existingIC = row.cells[13].querySelector('div').innerText;
 
                 if ((msn !== "" || desc !== "") && (existingIC === "---" || existingIC === "")) {
                     if (zoneI === "" || zoneA === "") { alert("Erreur : Zones manquantes ligne " + (i + 1)); return; }
@@ -1658,7 +1658,7 @@
                     if (msn !== "") {
                         var msnObj = null; for (var m = 0; m < msnData.length; m++) { if (msnData[m].msn === msn) { msnObj = msnData[m]; break; } }
                         if (msnObj) {
-                            posteFAL = msnObj.poste; var parsedSortie = parseDateString(msnObj.dateSortie.trim());
+                            posteFAL = msnObj.poste; var parsedSortie = parseDateString(msnObj.dateSortie.replace(/^\s+|\s+$/g, ""));
                             if (parsedSortie && parsedSortie < new Date()) { alert("MSN " + msn + " périmé."); return; }
                         } else { alert("MSN introuvable."); return; }
                     }
@@ -1690,16 +1690,16 @@
                         if (isEditingPlanning) {
                             var posteClr = pv === "IQ" ? "#10b981" : (pv === "ST" ? "#f59e0b" : "#334155");
                             var posteWrap = document.createElement("div"); posteWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;";
-                            var posteDisplay = document.createElement("span"); posteDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-weight:bold; color:" + posteClr + "; font-size:13px; position:relative; z-index:0; pointer-events:none;"; posteDisplay.textContent = pv || ""; posteWrap.appendChild(posteDisplay);
+                            var posteDisplay = document.createElement("span"); posteDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-weight:bold; color:" + posteClr + "; font-size:13px; position:relative; z-index:0; pointer-events:none;"; posteDisplay.innerText = pv || ""; posteWrap.appendChild(posteDisplay);
                             var selEl = document.createElement("select"); selEl.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;";
                             var opBlank = document.createElement("option"); opBlank.value = ""; opBlank.text = ""; if (pv === "") opBlank.selected = true; selEl.appendChild(opBlank);
                             var opOP = document.createElement("option"); opOP.value = "OP"; opOP.text = "OP"; if (pv === "OP") opOP.selected = true; selEl.appendChild(opOP);
                             var opIQ = document.createElement("option"); opIQ.value = "IQ"; opIQ.text = "IQ"; if (pv === "IQ") opIQ.selected = true; selEl.appendChild(opIQ);
                             var opST = document.createElement("option"); opST.value = "ST"; opST.text = "ST"; if (pv === "ST") opST.selected = true; selEl.appendChild(opST);
-                            selEl.setAttribute("data-pidx", pIdx); selEl.onchange = function() { var v = this.value; var c = v === "IQ" ? "#10b981" : (v === "ST" ? "#f59e0b" : "#334155"); posteDisplay.style.color = c; posteDisplay.textContent = v; personnelData[parseInt(this.getAttribute("data-pidx"))].poste = v; SaveData(); }; posteWrap.appendChild(selEl); cellP.appendChild(posteWrap);
+                            selEl.setAttribute("data-pidx", pIdx); selEl.onchange = function() { var v = this.value; var c = v === "IQ" ? "#10b981" : (v === "ST" ? "#f59e0b" : "#334155"); posteDisplay.style.color = c; posteDisplay.innerText = v; personnelData[parseInt(this.getAttribute("data-pidx"))].poste = v; SaveData(); }; posteWrap.appendChild(selEl); cellP.appendChild(posteWrap);
                             var wrapper = document.createElement("div"); wrapper.style.cssText = "position:relative; width:100%; height:" + (lineHeight-2) + "px;";
-                            var inp = document.createElement("input"); inp.type = "text"; inp.className = "excel-input"; inp.style.cssText = "height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box; text-align:left; text-transform:uppercase;"; inp.value = teamMembers[jj].data.nom; inp.setAttribute("data-pidx", pIdx); inp.oninput = function() { var pos = this.selectionStart; this.value = this.value.toUpperCase(); try { this.setSelectionRange(pos, pos); } catch(e) {} }; inp.onchange = function() { personnelData[parseInt(this.getAttribute("data-pidx"))].nom = this.value.toUpperCase().trim(); SaveData(); }; wrapper.appendChild(inp);
-                            var btnDel = document.createElement("button"); btnDel.textContent = "✕"; btnDel.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; btnDel.setAttribute("data-pidx", pIdx); btnDel.onclick = function() { var idx = parseInt(this.getAttribute("data-pidx")); personnelData[idx].poste = ""; personnelData[idx].nom = ""; SaveData(); RenderEquipeVacations(); }; wrapper.appendChild(btnDel); cellN.appendChild(wrapper);
+                            var inp = document.createElement("input"); inp.type = "text"; inp.className = "excel-input"; inp.style.cssText = "height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box; text-align:left; text-transform:uppercase;"; inp.value = teamMembers[jj].data.nom; inp.setAttribute("data-pidx", pIdx); inp.oninput = function() { var pos = this.selectionStart; this.value = this.value.toUpperCase(); try { this.setSelectionRange(pos, pos); } catch(e) {} }; inp.onchange = function() { personnelData[parseInt(this.getAttribute("data-pidx"))].nom = this.value.toUpperCase().replace(/^\s+|\s+$/g, ""); SaveData(); }; wrapper.appendChild(inp);
+                            var btnDel = document.createElement("button"); btnDel.innerText = "✕"; btnDel.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; btnDel.setAttribute("data-pidx", pIdx); btnDel.onclick = function() { var idx = parseInt(this.getAttribute("data-pidx")); personnelData[idx].poste = ""; personnelData[idx].nom = ""; SaveData(); RenderEquipeVacations(); }; wrapper.appendChild(btnDel); cellN.appendChild(wrapper);
                         } else {
                             cellP.style.padding = "10px"; cellN.style.padding = "10px"; cellN.style.textAlign = "left";
                             cellP.innerHTML = pv === "OP" ? "<strong>OP</strong>" : (pv === "IQ" ? "<strong style='color:#10b981;'>IQ</strong>" : (pv === "ST" ? "<strong style='color:#f59e0b;'>ST</strong>" : ""));
@@ -1715,17 +1715,17 @@
                             var c2 = row.insertCell(1); c2.style.padding = "0"; c2.style.height = lineHeight + "px";
                             var newPosteVal = "";
                             var newPosteWrap = document.createElement("div"); newPosteWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;";
-                            var newPosteDisplay = document.createElement("span"); newPosteDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-weight:bold; color:#334155; font-size:13px; position:relative; z-index:0; pointer-events:none;"; newPosteDisplay.textContent = ""; newPosteWrap.appendChild(newPosteDisplay);
+                            var newPosteDisplay = document.createElement("span"); newPosteDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-weight:bold; color:#334155; font-size:13px; position:relative; z-index:0; pointer-events:none;"; newPosteDisplay.innerText = ""; newPosteWrap.appendChild(newPosteDisplay);
                             var newSel = document.createElement("select"); newSel.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;";
                             var ob = document.createElement("option"); ob.value = ""; newSel.appendChild(ob);
                             var oOP = document.createElement("option"); oOP.value = "OP"; oOP.text = "OP"; newSel.appendChild(oOP);
                             var oIQ = document.createElement("option"); oIQ.value = "IQ"; oIQ.text = "IQ"; newSel.appendChild(oIQ);
                             var oST = document.createElement("option"); oST.value = "ST"; oST.text = "ST"; newSel.appendChild(oST);
-                            newSel.onchange = function() { newPosteVal = this.value; var c = newPosteVal === "IQ" ? "#10b981" : (newPosteVal === "ST" ? "#f59e0b" : "#334155"); newPosteDisplay.style.color = c; newPosteDisplay.textContent = newPosteVal; }; newPosteWrap.appendChild(newSel); c1.appendChild(newPosteWrap);
+                            newSel.onchange = function() { newPosteVal = this.value; var c = newPosteVal === "IQ" ? "#10b981" : (newPosteVal === "ST" ? "#f59e0b" : "#334155"); newPosteDisplay.style.color = c; newPosteDisplay.innerText = newPosteVal; }; newPosteWrap.appendChild(newSel); c1.appendChild(newPosteWrap);
                             var newWrapper = document.createElement("div"); newWrapper.style.cssText = "position:relative; width:100%; height:" + (lineHeight-2) + "px;";
                             var newInp = document.createElement("input"); newInp.type = "text"; newInp.className = "excel-input new-member-input"; newInp.style.cssText = "height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box; text-align:left; text-transform:uppercase;"; newInp.setAttribute("data-eqname", eqName); newInp.oninput = function() { var pos = this.selectionStart; this.value = this.value.toUpperCase(); try { this.setSelectionRange(pos, pos); } catch(e) {} };
                             newWrapper.appendChild(newInp);
-                            var newBtnClear = document.createElement("button"); newBtnClear.textContent = "✕"; newBtnClear.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; newBtnClear.onclick = function(e) { if(e) e.stopPropagation(); newInp.value = ""; newSel.value = ""; newPosteVal = ""; }; newWrapper.appendChild(newBtnClear);
+                            var newBtnClear = document.createElement("button"); newBtnClear.innerText = "✕"; newBtnClear.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; newBtnClear.onclick = function(e) { if(e) e.stopPropagation(); newInp.value = ""; newSel.value = ""; newPosteVal = ""; }; newWrapper.appendChild(newBtnClear);
                             c2.appendChild(newWrapper);
                         })(uniques[eqIdx]);
                     }
@@ -1736,14 +1736,14 @@
 
         function UpdateValueMSN(index, field, value) { 
             if (field === "msn") {
-                msnData[index].msn = value.toUpperCase().trim();
+                msnData[index].msn = value.toUpperCase().replace(/^\s+|\s+$/g, "");
                 if (msnData[index].msn === "") {
                     msnData[index].poste = ""; msnData[index].dateSortie = ""; msnData[index].valide = false;
                     SaveData(); RenderMSNTable(); return;
                 }
             }
-            if (field === "poste") msnData[index].poste = value.toUpperCase().trim();
-            if (field === "dateSortie") msnData[index].dateSortie = value.trim(); 
+            if (field === "poste") msnData[index].poste = value.toUpperCase().replace(/^\s+|\s+$/g, "");
+            if (field === "dateSortie") msnData[index].dateSortie = value.replace(/^\s+|\s+$/g, ""); 
             SaveData();
         }
 
@@ -1768,10 +1768,10 @@
                     var c2 = row.insertCell(2); c2.style.height = lineHeight + "px"; c2.style.padding = "0";
                     if (isEditingPlanning) {
                         var inp0 = document.createElement("input"); inp0.type = "text"; inp0.className = "excel-input"; inp0.style.cssText = "text-align:center; cursor:pointer; height:" + (lineHeight-2) + "px; width:100%; padding:0 8px; box-sizing:border-box;"; inp0.value = p.dateSortie || ""; inp0.readOnly = true; inp0.setAttribute("data-idx", index); inp0.onclick = function(e) { showCalendar(this, e || window.event); }; inp0.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "dateSortie", this.value); }; c0.appendChild(inp0);
-                        var avionWrap = document.createElement("div"); avionWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;"; var avionDisplay = document.createElement("span"); avionDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-size:13px; color:#334155; position:relative; z-index:0; pointer-events:none;"; avionDisplay.textContent = p.poste || ""; avionWrap.appendChild(avionDisplay); var selEl = document.createElement("select"); selEl.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;"; var opt0 = document.createElement("option"); opt0.value = ""; selEl.appendChild(opt0); for (var k = 0; k < postesAvionList.length; k++) { var opt = document.createElement("option"); opt.value = postesAvionList[k]; opt.text = postesAvionList[k]; if (p.poste === postesAvionList[k]) opt.selected = true; selEl.appendChild(opt); } selEl.setAttribute("data-idx", index); selEl.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "poste", this.value); avionDisplay.textContent = this.value; }; avionWrap.appendChild(selEl); c1.appendChild(avionWrap);
+                        var avionWrap = document.createElement("div"); avionWrap.style.cssText = "position:relative; height:" + (lineHeight-2) + "px; width:100%;"; var avionDisplay = document.createElement("span"); avionDisplay.style.cssText = "display:block; text-align:center; line-height:" + (lineHeight-2) + "px; font-size:13px; color:#334155; position:relative; z-index:0; pointer-events:none;"; avionDisplay.innerText = p.poste || ""; avionWrap.appendChild(avionDisplay); var selEl = document.createElement("select"); selEl.style.cssText = "position:absolute; left:0; top:0; width:100%; height:100%; opacity:0; cursor:pointer; z-index:1;"; var opt0 = document.createElement("option"); opt0.value = ""; selEl.appendChild(opt0); for (var k = 0; k < postesAvionList.length; k++) { var opt = document.createElement("option"); opt.value = postesAvionList[k]; opt.text = postesAvionList[k]; if (p.poste === postesAvionList[k]) opt.selected = true; selEl.appendChild(opt); } selEl.setAttribute("data-idx", index); selEl.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "poste", this.value); avionDisplay.innerText = this.value; }; avionWrap.appendChild(selEl); c1.appendChild(avionWrap);
                         var wrapMSN = document.createElement("div"); wrapMSN.style.cssText = "position:relative; width:100%; height:" + (lineHeight-2) + "px;";
                         var inp2 = document.createElement("input"); inp2.type = "text"; inp2.className = "excel-input"; inp2.style.cssText = "font-weight:bold; text-align:left; height:100%; width:100%; padding:0 32px 0 8px; box-sizing:border-box;"; inp2.value = p.msn || ""; inp2.setAttribute("data-idx", index); inp2.onchange = function() { UpdateValueMSN(parseInt(this.getAttribute("data-idx")), "msn", this.value); }; wrapMSN.appendChild(inp2);
-                        var btnDel = document.createElement("button"); btnDel.textContent = "✕"; btnDel.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; btnDel.setAttribute("data-idx", index); btnDel.onclick = function() { msnData[parseInt(this.getAttribute("data-idx"))] = {msn: "", poste: "", dateSortie: "", valide: false}; SaveData(); RenderMSNTable(); }; wrapMSN.appendChild(btnDel); c2.appendChild(wrapMSN);
+                        var btnDel = document.createElement("button"); btnDel.innerText = "✕"; btnDel.style.cssText = "width:22px; height:22px; line-height:22px; text-align:center; padding:0; border:1px solid #ccc; background:#fff; cursor:pointer; font-size:11px; color:#999; border-radius:2px; position:absolute; right:3px; top:6px;"; btnDel.setAttribute("data-idx", index); btnDel.onclick = function() { msnData[parseInt(this.getAttribute("data-idx"))] = {msn: "", poste: "", dateSortie: "", valide: false}; SaveData(); RenderMSNTable(); }; wrapMSN.appendChild(btnDel); c2.appendChild(wrapMSN);
                     } else {
                         c0.style.padding = "10px"; c1.style.padding = "10px"; c2.style.padding = "10px"; c2.style.textAlign = "center";
                         c0.innerHTML = p.dateSortie ? "<span style='color:#334155;'>" + p.dateSortie + "</span>" : "";
@@ -1831,7 +1831,7 @@
             for (var i = 0; i < allRows.length; i++) {
                 var tr = allRows[i]; if(tr.id === "emptyFilterRow") continue;
                 tr.cells[0].style.display = "";
-                var statut = (tr.cells[2].textContent).trim();
+                var statut = (tr.cells[2].innerText).replace(/^\s+|\s+$/g, "");
                 if (statut === targetStatus) { tr.style.display = ""; tr.querySelector('.chk-extract').checked = true; rowsToProcess.push(tr); } else { tr.style.display = "none"; tr.querySelector('.chk-extract').checked = false; }
             }
             var btnExec = document.getElementById("btnConfirmActionExec"); var emptyMsgDiv = document.getElementById("emptyFilterMsg");
@@ -1872,7 +1872,7 @@
 
         function ProcessNextActionRow(index, rows, type) {
             if (index >= rows.length || stopActionFlag) { stopActionFlag = false; AnnulerFiltreAction(); checkEmptyTable(); return; }
-            var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
+            var tr = rows[index]; var icNum = (tr.cells[1].innerText).replace(/^\s+|\s+$/g, ""); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
                     var res = VBS_ExecuterActionSpecifique(icNum, type);
@@ -2000,7 +2000,7 @@
         function SaveAndExitEditMode() {
             var newInputs = document.querySelectorAll(".new-member-input");
             for (var i = 0; i < newInputs.length; i++) {
-                var nom = newInputs[i].value.trim();
+                var nom = newInputs[i].value.replace(/^\s+|\s+$/g, "");
                 if (!nom) continue;
                 var eqName = newInputs[i].getAttribute("data-eqname");
                 var row = newInputs[i].parentNode.parentNode.parentNode;
@@ -2396,4 +2396,4 @@
     </div>
 </body>
 </html>
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      
