@@ -1045,31 +1045,22 @@
             VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
     
-' ==================== WRAPPERS VBScript - PATTERN AVEC INPUTS CACHÉS ====================
-        ' Les fonctions VBScript lisent les paramètres dans les inputs cachés
-        ' et mettent à jour l'UI directement
-
+        ' ==================== WRAPPERS VBSCRIPT ====================
+        ' Permettent à JavaScript de communiquer avec VBScript
+        
         Sub HandleExtractionRequest()
             On Error Resume Next
             Dim dateStart, dateEnd, resultHTML
-            
-            ' Lire les paramètres depuis les inputs cachés
             dateStart = document.getElementById("vbs_param_dateStart").value
             dateEnd = document.getElementById("vbs_param_dateEnd").value
-            
             If dateStart = "" Or dateEnd = "" Then
                 document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
                 Exit Sub
             End If
-            
-            ' Appeler la vraie fonction VBScript
             resultHTML = VBS_LancerSAP(dateStart, dateEnd)
-            
-            ' Mettre à jour l'UI
             If resultHTML <> "" Then
                 document.getElementById("resultatExtraction").innerHTML = resultHTML
             End If
-            
             On Error GoTo 0
         End Sub
 
@@ -1077,8 +1068,6 @@
             On Error Resume Next
             Dim dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex
             Dim resultStr, tbody, cellDiv
-            
-            ' Lire les paramètres
             dateStr = document.getElementById("vbs_param_date").value
             vacation = document.getElementById("vbs_param_vacation").value
             equipe = document.getElementById("vbs_param_equipe").value
@@ -1087,11 +1076,7 @@
             iqStr = document.getElementById("vbs_param_iq").value
             stStr = document.getElementById("vbs_param_st").value
             rowIndex = CInt(document.getElementById("vbs_param_rowIndex").value)
-            
-            ' Appeler la vraie fonction VBScript
             resultStr = VBS_CreerICs(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr)
-            
-            ' Mettre à jour l'UI
             Set tbody = document.getElementById("tableCreateBody")
             If Not tbody Is Nothing And rowIndex >= 0 And rowIndex < tbody.rows.length Then
                 Set cellDiv = tbody.rows(rowIndex).cells(13)
@@ -1105,136 +1090,30 @@
                     End If
                 End If
             End If
-            
             On Error GoTo 0
         End Sub
 
         Sub HandleActionRequest()
             On Error Resume Next
-            Dim icNum, actionType, resultStr, tbody, tr
-            
-            ' Lire les paramètres
+            Dim icNum, actionType, resultStr
             icNum = document.getElementById("vbs_param_icNum").value
             actionType = document.getElementById("vbs_param_action").value
-            
             If icNum = "" Or actionType = "" Then Exit Sub
-            
-            ' Appeler la vraie fonction VBScript
             resultStr = VBS_ExecuterActionSpecifique(icNum, actionType)
-            
-            ' Mettre à jour l'UI - chercher la ligne du tableau
-            Set tbody = document.getElementById("resultatExtraction").querySelector("tbody")
-            If Not tbody Is Nothing Then
-                ' Chercher la ligne correspondante par IC number
-                ' et mettre à jour la colonne action
-            End If
-            
             On Error GoTo 0
         End Sub
+
 </script>
 
     <script language="javascript">
 
-        // ==================== FONCTIONS UTILITAIRES (Hissées avant utilisation) ====================
-function getTotalEditRows() {
-            var thead = document.querySelector("#tablePlanningMSN thead");
-            if (thead) {
-                var y = 0;
-                var el = thead;
-                while (el) { y += (el.offsetTop || 0); el = el.offsetParent; }
-                y += thead.offsetHeight;
-                var available = window.innerHeight - y - 55;
-                return Math.max(8, Math.floor(available / 38));
-            }
-            return Math.max(8, Math.floor((window.innerHeight - 285) / 38));
-        }
-
-        function ToggleEditMode() {
-            isEditingPlanning = true;
-            document.getElementById("btnModifierPlanning").style.display = "none";
-            document.getElementById("btnValidateEdit").style.display = "inline-block";
-            document.getElementById("btnCancelEdit").style.display = "inline-block";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function SaveAndExitEditMode() {
-            var newInputs = document.querySelectorAll(".new-member-input");
-            for (var i = 0; i < newInputs.length; i++) {
-                var nom = newInputs[i].value.trim();
-                if (!nom) continue;
-                var eqName = newInputs[i].getAttribute("data-eqname");
-                var row = newInputs[i].parentNode.parentNode.parentNode;
-                var sel = (row && row.cells && row.cells[0]) ? row.cells[0].getElementsByTagName("select")[0] : null;
-                var poste = (sel && sel.value) ? sel.value : "OP";
-                personnelData.push({nom: nom.toUpperCase(), poste: poste, equipe: eqName});
-            }
-            SaveData();
-            isEditingPlanning = false;
-            document.getElementById("btnModifierPlanning").style.display = "inline-block";
-            document.getElementById("btnValidateEdit").style.display = "none";
-            document.getElementById("btnCancelEdit").style.display = "none";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function CancelEditMode() {
-            isEditingPlanning = false;
-            document.getElementById("btnModifierPlanning").style.display = "inline-block";
-            document.getElementById("btnValidateEdit").style.display = "none";
-            document.getElementById("btnCancelEdit").style.display = "none";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function ResizeDashboard() {
-            var eff    = document.getElementById("cardEffectifs");
-            var aide   = document.getElementById("cardAide");
-            var alerte = document.getElementById("cardAlertes");
-            var stats  = document.getElementById("cardStats");
-            if (!eff || !aide) return;
-
-            // Egaliser ligne 1
-            eff.style.height = ""; aide.style.height = "";
-            var h1 = Math.max(eff.offsetHeight, aide.offsetHeight);
-            eff.style.height = h1 + "px"; aide.style.height = h1 + "px";
-
-            // Égaliser ligne 2 en fonction du contenu
-            if (alerte && stats) {
-                alerte.style.height = ""; stats.style.height = "";
-                var alerteHeight = alerte.offsetHeight;
-                var statsHeight = stats.offsetHeight;
-                var maxHeight = Math.max(alerteHeight, statsHeight);
-                alerte.style.height = maxHeight + "px";
-                stats.style.height = maxHeight + "px";
-            }
-        }
-
-        // --- 8. INITIALISATION APPLICATIVE AU BOOTSTRAP ---
-        window.onload = function() {
-            if (!window.personnelData) window.personnelData = [];
-            if (!window.msnData) window.msnData = [];
-            if (!window.stopActionFlag) window.stopActionFlag = false;
-
-            LoadData();
-            var tbody = document.getElementById('tbodySaisieCreation'); if(tbody) tbody.innerHTML = '';
-            for(var i=0; i<18; i++) { AjouterLigneSaisieIC(); }
-            
-            // Lancement du contrôle des droits
-            DemarrerVerificationSysteme();
-        };
-
-    // ==================== PATTERN: Inputs Cachés pour communiquer avec VBScript ====================
-    // Stratégie: JavaScript remplit les inputs cachés, puis déclenche les fonctions VBScript
+    // ==================== WRAPPERS JAVASCRIPT ====================
+    // Permettent à JavaScript d'appeler les fonctions VBScript de façon sûre
     
     function callVBSExtraction(dateStart, dateEnd) {
         try {
-            // Remplir les inputs cachés avec les paramètres
             document.getElementById("vbs_param_dateStart").value = dateStart;
             document.getElementById("vbs_param_dateEnd").value = dateEnd;
-            
-            // Déclencher la fonction VBScript
-            // En HTA, on peut appeler directement les fonctions VBScript
             HandleExtractionRequest();
         } catch(e) {
             document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Erreur: " + e.message + "</div>";
@@ -1251,7 +1130,6 @@ function getTotalEditRows() {
             document.getElementById("vbs_param_iq").value = iqStr;
             document.getElementById("vbs_param_st").value = stStr;
             document.getElementById("vbs_param_rowIndex").value = rowIndex;
-            
             HandleCreationRequest();
         } catch(e) {
             console.error("Erreur VBScript Creation: " + e.message);
@@ -1262,12 +1140,12 @@ function getTotalEditRows() {
         try {
             document.getElementById("vbs_param_icNum").value = icNum;
             document.getElementById("vbs_param_action").value = actionType;
-            
             HandleActionRequest();
         } catch(e) {
             console.error("Erreur VBScript Action: " + e.message);
         }
     }
+
 
         var VERSION_ACTUELLE = "8.3"; 
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/9158de12ec4159774acec4956728945e/raw/IcManager.txt";
@@ -1841,7 +1719,7 @@ function getTotalEditRows() {
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    callVBSCreation(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -2034,7 +1912,7 @@ function getTotalEditRows() {
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    callVBSExtraction(dSapStart, dSapEnd); var resultatHTML = document.getElementById('resultatExtraction').innerHTML;
+                    callVBSExtraction(dSapStart, dSapEnd); var resultatHTML = document.getElementById("resultatExtraction").innerHTMLdSapStart, dSapEnd);
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -2103,7 +1981,7 @@ function getTotalEditRows() {
             var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    callVBSAction(icNum, type);
+                    var res = VBS_ExecuterActionSpecifique(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
@@ -2203,10 +2081,94 @@ function getTotalEditRows() {
 
         var isEditingPlanning = false;
 
-        
-    
-        
-</script>
+        function getTotalEditRows() {
+            var thead = document.querySelector("#tablePlanningMSN thead");
+            if (thead) {
+                var y = 0;
+                var el = thead;
+                while (el) { y += (el.offsetTop || 0); el = el.offsetParent; }
+                y += thead.offsetHeight;
+                var available = window.innerHeight - y - 55;
+                return Math.max(8, Math.floor(available / 38));
+            }
+            return Math.max(8, Math.floor((window.innerHeight - 285) / 38));
+        }
+
+        function ToggleEditMode() {
+            isEditingPlanning = true;
+            document.getElementById("btnModifierPlanning").style.display = "none";
+            document.getElementById("btnValidateEdit").style.display = "inline-block";
+            document.getElementById("btnCancelEdit").style.display = "inline-block";
+            RenderMSNTable();
+            RenderEquipeVacations();
+        }
+
+        function SaveAndExitEditMode() {
+            var newInputs = document.querySelectorAll(".new-member-input");
+            for (var i = 0; i < newInputs.length; i++) {
+                var nom = newInputs[i].value.trim();
+                if (!nom) continue;
+                var eqName = newInputs[i].getAttribute("data-eqname");
+                var row = newInputs[i].parentNode.parentNode.parentNode;
+                var sel = (row && row.cells && row.cells[0]) ? row.cells[0].getElementsByTagName("select")[0] : null;
+                var poste = (sel && sel.value) ? sel.value : "OP";
+                personnelData.push({nom: nom.toUpperCase(), poste: poste, equipe: eqName});
+            }
+            SaveData();
+            isEditingPlanning = false;
+            document.getElementById("btnModifierPlanning").style.display = "inline-block";
+            document.getElementById("btnValidateEdit").style.display = "none";
+            document.getElementById("btnCancelEdit").style.display = "none";
+            RenderMSNTable();
+            RenderEquipeVacations();
+        }
+
+        function CancelEditMode() {
+            isEditingPlanning = false;
+            document.getElementById("btnModifierPlanning").style.display = "inline-block";
+            document.getElementById("btnValidateEdit").style.display = "none";
+            document.getElementById("btnCancelEdit").style.display = "none";
+            RenderMSNTable();
+            RenderEquipeVacations();
+        }
+
+        function ResizeDashboard() {
+            var eff    = document.getElementById("cardEffectifs");
+            var aide   = document.getElementById("cardAide");
+            var alerte = document.getElementById("cardAlertes");
+            var stats  = document.getElementById("cardStats");
+            if (!eff || !aide) return;
+
+            // Egaliser ligne 1
+            eff.style.height = ""; aide.style.height = "";
+            var h1 = Math.max(eff.offsetHeight, aide.offsetHeight);
+            eff.style.height = h1 + "px"; aide.style.height = h1 + "px";
+
+            // Égaliser ligne 2 en fonction du contenu
+            if (alerte && stats) {
+                alerte.style.height = ""; stats.style.height = "";
+                var alerteHeight = alerte.offsetHeight;
+                var statsHeight = stats.offsetHeight;
+                var maxHeight = Math.max(alerteHeight, statsHeight);
+                alerte.style.height = maxHeight + "px";
+                stats.style.height = maxHeight + "px";
+            }
+        }
+
+        // --- 8. INITIALISATION APPLICATIVE AU BOOTSTRAP ---
+        window.onload = function() {
+            if (!window.personnelData) window.personnelData = [];
+            if (!window.msnData) window.msnData = [];
+            if (!window.stopActionFlag) window.stopActionFlag = false;
+
+            LoadData();
+            var tbody = document.getElementById('tbodySaisieCreation'); if(tbody) tbody.innerHTML = '';
+            for(var i=0; i<18; i++) { AjouterLigneSaisieIC(); }
+            
+            // Lancement du contrôle des droits
+            DemarrerVerificationSysteme();
+        };
+    </script>
 </head>
 <body>
 
@@ -2543,7 +2505,6 @@ function getTotalEditRows() {
     <input type="hidden" id="vbs_param_dateStart" />
     <input type="hidden" id="vbs_param_dateEnd" />
     <input type="hidden" id="vbs_param_resultContainer" />
-    
     <input type="hidden" id="vbs_param_date" />
     <input type="hidden" id="vbs_param_vacation" />
     <input type="hidden" id="vbs_param_equipe" />
@@ -2552,13 +2513,6 @@ function getTotalEditRows() {
     <input type="hidden" id="vbs_param_iq" />
     <input type="hidden" id="vbs_param_st" />
     <input type="hidden" id="vbs_param_rowIndex" />
-    
     <input type="hidden" id="vbs_param_icNum" />
-    <input type="hidden" id="vbs_param_action" />
-    
-    <!-- Boutons cachés qui déclenchent les fonctions VBScript -->
-    <input type="hidden" id="vbs_trigger_extraction" />
-    <input type="hidden" id="vbs_trigger_creation" />
-    <input type="hidden" id="vbs_trigger_action" />
-</body>
+    <input type="hidden" id="vbs_param_action" /></body>
 </html>
