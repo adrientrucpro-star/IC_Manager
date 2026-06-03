@@ -1044,7 +1044,94 @@
             
             VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
-    </script>
+    
+' ==================== WRAPPERS VBScript - PATTERN AVEC INPUTS CACHÉS ====================
+        ' Les fonctions VBScript lisent les paramètres dans les inputs cachés
+        ' et mettent à jour l'UI directement
+
+        Sub HandleExtractionRequest()
+            On Error Resume Next
+            Dim dateStart, dateEnd, resultHTML
+            
+            ' Lire les paramètres depuis les inputs cachés
+            dateStart = document.getElementById("vbs_param_dateStart").value
+            dateEnd = document.getElementById("vbs_param_dateEnd").value
+            
+            If dateStart = "" Or dateEnd = "" Then
+                document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
+                Exit Sub
+            End If
+            
+            ' Appeler la vraie fonction VBScript
+            resultHTML = VBS_LancerSAP(dateStart, dateEnd)
+            
+            ' Mettre à jour l'UI
+            If resultHTML <> "" Then
+                document.getElementById("resultatExtraction").innerHTML = resultHTML
+            End If
+            
+            On Error GoTo 0
+        End Sub
+
+        Sub HandleCreationRequest()
+            On Error Resume Next
+            Dim dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex
+            Dim resultStr, tbody, cellDiv
+            
+            ' Lire les paramètres
+            dateStr = document.getElementById("vbs_param_date").value
+            vacation = document.getElementById("vbs_param_vacation").value
+            equipe = document.getElementById("vbs_param_equipe").value
+            dataStr = document.getElementById("vbs_param_data").value
+            opStr = document.getElementById("vbs_param_op").value
+            iqStr = document.getElementById("vbs_param_iq").value
+            stStr = document.getElementById("vbs_param_st").value
+            rowIndex = CInt(document.getElementById("vbs_param_rowIndex").value)
+            
+            ' Appeler la vraie fonction VBScript
+            resultStr = VBS_CreerICs(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr)
+            
+            ' Mettre à jour l'UI
+            Set tbody = document.getElementById("tableCreateBody")
+            If Not tbody Is Nothing And rowIndex >= 0 And rowIndex < tbody.rows.length Then
+                Set cellDiv = tbody.rows(rowIndex).cells(13)
+                If Not cellDiv Is Nothing Then
+                    If InStr(resultStr, "ERREUR") > 0 Or InStr(resultStr, "Annulé") > 0 Then
+                        cellDiv.innerHTML = "<span style='color:#b91c1c;'>" & resultStr & "</span>"
+                        tbody.rows(rowIndex).style.backgroundColor = "#fee2e2"
+                    Else
+                        cellDiv.innerHTML = resultStr
+                        tbody.rows(rowIndex).style.backgroundColor = "#dcfce7"
+                    End If
+                End If
+            End If
+            
+            On Error GoTo 0
+        End Sub
+
+        Sub HandleActionRequest()
+            On Error Resume Next
+            Dim icNum, actionType, resultStr, tbody, tr
+            
+            ' Lire les paramètres
+            icNum = document.getElementById("vbs_param_icNum").value
+            actionType = document.getElementById("vbs_param_action").value
+            
+            If icNum = "" Or actionType = "" Then Exit Sub
+            
+            ' Appeler la vraie fonction VBScript
+            resultStr = VBS_ExecuterActionSpecifique(icNum, actionType)
+            
+            ' Mettre à jour l'UI - chercher la ligne du tableau
+            Set tbody = document.getElementById("resultatExtraction").querySelector("tbody")
+            If Not tbody Is Nothing Then
+                ' Chercher la ligne correspondante par IC number
+                ' et mettre à jour la colonne action
+            End If
+            
+            On Error GoTo 0
+        End Sub
+</script>
 
     <script language="javascript">
     // ==================== PATTERN: Inputs Cachés pour communiquer avec VBScript ====================
@@ -2114,92 +2201,7 @@
             DemarrerVerificationSysteme();
         };
     
-        ' ==================== WRAPPERS VBScript - PATTERN AVEC INPUTS CACHÉS ====================
-        ' Les fonctions VBScript lisent les paramètres dans les inputs cachés
-        ' et mettent à jour l'UI directement
-
-        Sub HandleExtractionRequest()
-            On Error Resume Next
-            Dim dateStart, dateEnd, resultHTML
-            
-            ' Lire les paramètres depuis les inputs cachés
-            dateStart = document.getElementById("vbs_param_dateStart").value
-            dateEnd = document.getElementById("vbs_param_dateEnd").value
-            
-            If dateStart = "" Or dateEnd = "" Then
-                document.getElementById("resultatExtraction").innerHTML = "<div class='msg-box msg-error'>Dates manquantes</div>"
-                Exit Sub
-            End If
-            
-            ' Appeler la vraie fonction VBScript
-            resultHTML = VBS_LancerSAP(dateStart, dateEnd)
-            
-            ' Mettre à jour l'UI
-            If resultHTML <> "" Then
-                document.getElementById("resultatExtraction").innerHTML = resultHTML
-            End If
-            
-            On Error GoTo 0
-        End Sub
-
-        Sub HandleCreationRequest()
-            On Error Resume Next
-            Dim dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr, rowIndex
-            Dim resultStr, tbody, cellDiv
-            
-            ' Lire les paramètres
-            dateStr = document.getElementById("vbs_param_date").value
-            vacation = document.getElementById("vbs_param_vacation").value
-            equipe = document.getElementById("vbs_param_equipe").value
-            dataStr = document.getElementById("vbs_param_data").value
-            opStr = document.getElementById("vbs_param_op").value
-            iqStr = document.getElementById("vbs_param_iq").value
-            stStr = document.getElementById("vbs_param_st").value
-            rowIndex = CInt(document.getElementById("vbs_param_rowIndex").value)
-            
-            ' Appeler la vraie fonction VBScript
-            resultStr = VBS_CreerICs(dateStr, vacation, equipe, dataStr, opStr, iqStr, stStr)
-            
-            ' Mettre à jour l'UI
-            Set tbody = document.getElementById("tableCreateBody")
-            If Not tbody Is Nothing And rowIndex >= 0 And rowIndex < tbody.rows.length Then
-                Set cellDiv = tbody.rows(rowIndex).cells(13)
-                If Not cellDiv Is Nothing Then
-                    If InStr(resultStr, "ERREUR") > 0 Or InStr(resultStr, "Annulé") > 0 Then
-                        cellDiv.innerHTML = "<span style='color:#b91c1c;'>" & resultStr & "</span>"
-                        tbody.rows(rowIndex).style.backgroundColor = "#fee2e2"
-                    Else
-                        cellDiv.innerHTML = resultStr
-                        tbody.rows(rowIndex).style.backgroundColor = "#dcfce7"
-                    End If
-                End If
-            End If
-            
-            On Error GoTo 0
-        End Sub
-
-        Sub HandleActionRequest()
-            On Error Resume Next
-            Dim icNum, actionType, resultStr, tbody, tr
-            
-            ' Lire les paramètres
-            icNum = document.getElementById("vbs_param_icNum").value
-            actionType = document.getElementById("vbs_param_action").value
-            
-            If icNum = "" Or actionType = "" Then Exit Sub
-            
-            ' Appeler la vraie fonction VBScript
-            resultStr = VBS_ExecuterActionSpecifique(icNum, actionType)
-            
-            ' Mettre à jour l'UI - chercher la ligne du tableau
-            Set tbody = document.getElementById("resultatExtraction").querySelector("tbody")
-            If Not tbody Is Nothing Then
-                ' Chercher la ligne correspondante par IC number
-                ' et mettre à jour la colonne action
-            End If
-            
-            On Error GoTo 0
-        End Sub
+        
 </script>
 </head>
 <body>
