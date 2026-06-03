@@ -258,7 +258,7 @@
             On Error GoTo 0
         End Function
 
-        Function callVBSExecuterAction(icNum, actionType)
+        Function VBS_API.ExecuterAction(icNum, actionType)
             Dim res
             WriteLog "------------------------------------------"
             WriteLog "TRAITEMENT SPECIFIQUE IC : " & icNum & " | Action: " & actionType
@@ -522,7 +522,7 @@
             On Error GoTo 0
         End function
 
-        Function callVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
+        Function VBS_API.CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
             Dim arrRows, i, rowData, arrFields, y, r, msn, numOF, fullDesc, zoneI, zoneA, chkBox, strPoste
             Dim resultString, createdIC, reponseMsgBox, Texte, DescPart, Titre, H1, H2, PosteSAP, DistribSAP
             Dim arrOP, arrIQ, arrST, countOP, countIQ, countST, NB_INTER, rIndex, rObj, rText, dateSapFormat
@@ -859,7 +859,7 @@
             VBS_CreerICs = resultString
         End Function
 
-        Function callVBSLancerSAP(strDateDebutSAP, strDateFinSAP)
+        Function VBS_API.LancerSAP(strDateDebutSAP, strDateFinSAP)
             Dim exportPath, fso, wsh, folderPath, fileName, popupCheck
             Dim maxRetries, currentRetry, fileReady, ts, fileContent
             Dim arrLines, iLine, strLine, regEx, arrCols, finalArr()
@@ -1044,37 +1044,34 @@
             
             VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
-    </script>
+    
+        ' ==================== CLASSE POUR EXPOSER VBS AU JAVASCRIPT ====================
+        Class VBS_APIClass
+            Function LancerSAP(strDateDebutSAP, strDateFinSAP)
+                On Error Resume Next
+                LancerSAP = VBS_API.LancerSAP(strDateDebutSAP, strDateFinSAP)
+                On Error GoTo 0
+            End Function
+            
+            Function CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
+                On Error Resume Next
+                CreerICs = VBS_API.CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
+                On Error GoTo 0
+            End Function
+            
+            Function ExecuterAction(icNum, actionType)
+                On Error Resume Next
+                ExecuterAction = VBS_API.ExecuterAction(icNum, actionType)
+                On Error GoTo 0
+            End Function
+        End Class
+        
+        ' Créer une instance globale
+        Dim VBS_API
+        Set VBS_API = New VBS_APIClass
+</script>
 
     <script language="javascript">
-        // ==================== GLOBAL WRAPPER FUNCTIONS ====================
-        // Ces fonctions exposent les VBScript functions au JavaScript
-        // Elles sont définies ICI et appelées par le JavaScript plus bas
-        function callVBSLancerSAP(dateStart, dateEnd) {
-            try {
-                return callVBSLancerSAP(dateStart, dateEnd);
-            } catch(e) {
-                return "<div class='msg-box msg-error'>ERREUR: VBS_LancerSAP indéfini. Rechargez l'application.</div>";
-            }
-        }
-        
-        function callVBSCreerICs(date, vacation, equipe, data, op, iq, st) {
-            try {
-                return callVBSCreerICs(date, vacation, equipe, data, op, iq, st);
-            } catch(e) {
-                return "ERREUR: VBS_CreerICs - " + e;
-            }
-        }
-        
-        function callVBSExecuterAction(icNum, action) {
-            try {
-                return callVBSExecuterAction(icNum, action);
-            } catch(e) {
-                return "ERREUR: VBS_ExecuterActionSpecifique - " + e;
-            }
-        }
-        // ==================== FIN GLOBAL WRAPPERS ====================
-
         var VERSION_ACTUELLE = "8.3"; 
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/9158de12ec4159774acec4956728945e/raw/IcManager.txt";
         var URL_TELECHARGEMENT_APP = "https://drive.google.com/file/d/1mZaDZqVggQ82yAtysOg5CFScVBtdaTft/view?usp=drive_link";
@@ -1647,7 +1644,7 @@
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    var resultStr = callVBSCreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    var resultStr = VBS_API.CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -1840,7 +1837,7 @@
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    var resultatHTML = callVBSLancerSAP(dSapStart, dSapEnd);
+                    var resultatHTML = VBS_API.LancerSAP(dSapStart, dSapEnd);
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -1909,7 +1906,7 @@
             var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    var res = callVBSExecuterAction(icNum, type);
+                    var res = VBS_API.ExecuterAction(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
