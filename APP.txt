@@ -1036,74 +1036,10 @@
     </script>
 
     <script language="javascript">
-    // ==================== WRAPPERS POUR APPELER VBSCRIPT ====================
-    // Utilise window.execScript qui est la seule méthode fiable en HTA
-    
-    function callVBSLancerSAP(dateStart, dateEnd) {
-        try {
-            // Nettoyer les dates pour éviter les injections
-            dateStart = String(dateStart).replace(/'/g, "''");
-            dateEnd = String(dateEnd).replace(/'/g, "''");
-            
-            var result = "";
-            var code = "On Error Resume Next\n" +
-                       "result = callVBSLancerSAP('" + dateStart + "', '" + dateEnd + "')\n" +
-                       "If Err.Number <> 0 Then\n" +
-                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
-                       "End If\n" +
-                       "On Error GoTo 0";
-            
-            window.execScript(code, "VBScript");
-            return result;
-        } catch(e) {
-            return "<div class='msg-box msg-error'>ERREUR JavaScript: " + e.message + "</div>";
-        }
-    }
-    
-    function callVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST) {
-        try {
-            strDate = String(strDate).replace(/'/g, "''");
-            strVacation = String(strVacation).replace(/'/g, "''");
-            strEquipe = String(strEquipe).replace(/'/g, "''");
-            strData = String(strData).replace(/'/g, "''");
-            strOP = String(strOP).replace(/'/g, "''");
-            strIQ = String(strIQ).replace(/'/g, "''");
-            strST = String(strST).replace(/'/g, "''");
-            
-            var result = "";
-            var code = "On Error Resume Next\n" +
-                       "result = callVBSCreerICs('" + strDate + "', '" + strVacation + "', '" + strEquipe + "', '" + strData + "', '" + strOP + "', '" + strIQ + "', '" + strST + "')\n" +
-                       "If Err.Number <> 0 Then\n" +
-                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
-                       "End If\n" +
-                       "On Error GoTo 0";
-            
-            window.execScript(code, "VBScript");
-            return result;
-        } catch(e) {
-            return "ERREUR JavaScript: " + e.message;
-        }
-    }
-    
-    function callVBSExecuterAction(icNum, actionType) {
-        try {
-            icNum = String(icNum).replace(/'/g, "''");
-            actionType = String(actionType).replace(/'/g, "''");
-            
-            var result = "";
-            var code = "On Error Resume Next\n" +
-                       "result = callVBSExecuterAction('" + icNum + "', '" + actionType + "')\n" +
-                       "If Err.Number <> 0 Then\n" +
-                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
-                       "End If\n" +
-                       "On Error GoTo 0";
-            
-            window.execScript(code, "VBScript");
-            return result;
-        } catch(e) {
-            return "ERREUR JavaScript: " + e.message;
-        }
-    }
+    // ==================== APPELS DIRECTS AUX FONCTIONS VBSCRIPT ====================
+    // En HTA, les fonctions VBScript sont accessibles directement depuis JavaScript
+    // Les fonctions VBScript (VBS_LancerSAP, VBS_CreerICs, VBS_ExecuterActionSpecifique)
+    // sont déclarées dans le bloc <script language="VBScript"> et peuvent être appelées directement
 
         var VERSION_ACTUELLE = "8.3"; 
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/9158de12ec4159774acec4956728945e/raw/IcManager.txt";
@@ -1677,7 +1613,7 @@
             var rowItem = validRowsData[currentIndex]; var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    var resultStr = callVBSCreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[13].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.textContent = resultStr; }
@@ -1870,7 +1806,7 @@
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    var resultatHTML = callVBSLancerSAP(dSapStart, dSapEnd);
+                    var resultatHTML = VBS_LancerSAP(dSapStart, dSapEnd);
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -1939,7 +1875,7 @@
             var tr = rows[index]; var icNum = (tr.cells[1].textContent).trim(); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    var res = callVBSExecuterAction(icNum, type);
+                    var res = VBS_ExecuterActionSpecifique(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[5].innerHTML = "<span style='color:#b91c1c;'>" + res + "</span>"; } 
                     else {
                         tr.style.backgroundColor = "#dcfce3";
@@ -2460,3 +2396,4 @@
     </div>
 </body>
 </html>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               
