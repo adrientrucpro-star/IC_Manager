@@ -135,14 +135,7 @@
         Const SAP_TAB_19 = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB19/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
         Const SAP_TAB_20 = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB20/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
 
-        Dim oSession
-
-        Function IsNumeric(val)
-            On Error Resume Next
-            Dim d: d = CDbl(val)
-            IsNumeric = (Err.Number = 0)
-            On Error GoTo 0
-        End Function
+        Dim oSession 
 
         Sub WriteLog(msg)
             On Error Resume Next
@@ -257,7 +250,39 @@
             End If
             On Error GoTo 0
         End Function
-Function R_Annuler(icNum)
+
+        Function VBS_ExecuterActionSpecifique(icNum, actionType)
+            Dim res
+            WriteLog "------------------------------------------"
+            WriteLog "TRAITEMENT SPECIFIQUE IC : " & icNum & " | Action: " & actionType
+            If oSession Is Nothing Then Set oSession = GetSAPSession()
+            If oSession Is Nothing Then
+                WriteLog "ERREUR FATALE : Connexion SAP inactive."
+                VBS_ExecuterActionSpecifique = "ERREUR: SAP déconnecté."
+                Exit Function
+            End If
+            
+            If Trim(icNum) = "" Then 
+                VBS_ExecuterActionSpecifique = "ERREUR: Numéro vide"
+                Exit Function
+            End If
+            
+            Select Case actionType
+                Case "ANNULER"
+                    res = R_Annuler(icNum)
+                Case "DEBUT"
+                    res = R_Demarrer(icNum)
+                Case "FIN"
+                    res = R_Finir(icNum)
+                Case "QUALITE"
+                    res = R_Qualite(icNum)
+                Case Else
+                    res = "ERREUR: Action inconnue"
+            End Select
+            VBS_ExecuterActionSpecifique = res
+        End Function
+
+        Function R_Annuler(icNum)
             Dim ouverture, d, m, y, strToday, h, mn, strTimeStart, strTimeEnd, futureTime
             Dim shell, nodeKeys, iLoop, nKey, nText, btnFound, tbar1, c2, btnInterrompreFound
             Dim popupValider, checkSave
@@ -407,7 +432,7 @@ Function R_Annuler(icNum)
             
             oSession.FindById("wnd[0]/usr/cmbZONE").Key = "YES"
             oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
-            Call PauseVBS(1)
+            Call PauseVBS(0)
             
             Set tbar1 = oSession.FindById("wnd[0]/tbar[1]")
             If Not tbar1 Is Nothing Then
@@ -466,7 +491,7 @@ Function R_Annuler(icNum)
             
             oSession.FindById("wnd[0]/usr/cmbZONE").Key = "YES"
             oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
-            Call PauseVBS(1)
+            Call PauseVBS(0)
             
             Set tbar1 = oSession.FindById("wnd[0]/tbar[1]")
             If Not tbar1 Is Nothing Then
@@ -489,396 +514,6 @@ Function R_Annuler(icNum)
             End If
             On Error GoTo 0
         End function
-Function callVBSLancerSAP(strDateDebutSAP, strDateFinSAP)
-            Dim exportPath, fso, wsh, folderPath, fileName, popupCheck
-            Dim maxRetries, currentRetry, fileReady, ts, fileContent
-            Dim arrLines, iLine, strLine, regEx, arrCols, finalArr()
-            Dim k, elemCount, htmlResult, listICs(), countICs
-            Dim currentAvis, rawStatus, currentCreator, cDateDebut
-            Dim cStatut, actionTxt, rowDataStr, dPartsCRE, styleCouleur
-            Dim iSort, jSort, tempSort, avis1, avis2
-            
-            On Error Resume Next
-            Set wsh = CreateObject("WScript.Shell")
-            folderPath = wsh.ExpandEnvironmentStrings("%APPDATA%")
-            fileName = "EXPORT_A350.txt"
-            exportPath = folderPath & "\" & fileName
-            
-            Set fso = CreateObject("Scripting.FileSystemObject")
-            If fso.FileExists(exportPath) Then 
-                fso.DeleteFile exportPath, True
-            End If
-            
-            Set oSession = GetSAPSession()
-            If oSession Is Nothing Then 
-                VBS_LancerSAP = "<div class='msg-box msg-error'>SAP inaccessible.</div>"
-                Exit Function
-            End If
-            
-            oSession.EndTransaction
-            oSession.StartTransaction "QM11"
-            oSession.findById("wnd[0]").Maximize
-            
-            oSession.findById("wnd[0]/tbar[1]/btn[17]").Press
-            oSession.findById("wnd[1]/usr/txtV-LOW").Text = "LAROCHE_IC"
-            oSession.findById("wnd[1]/usr/txtENAME-LOW").Text = ""
-            oSession.findById("wnd[1]/tbar[0]/btn[8]").Press 
-            
-            oSession.findById("wnd[0]/usr/ctxtQMDAT-LOW").Text = strDateDebutSAP
-            oSession.findById("wnd[0]/usr/ctxtQMDAT-HIGH").Text = strDateFinSAP
-            oSession.findById("wnd[0]/tbar[1]/btn[8]").Press
-            oSession.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[2]").select
-            
-            Set popupCheck = oSession.findById("wnd[1]", False)
-            If popupCheck Is Nothing Then 
-                VBS_LancerSAP = "<div class='msg-box msg-info'>Aucune IC trouvée.</div>"
-                Exit Function
-            End If
-            
-            oSession.findById("wnd[1]/usr/subSUBSCREEN_STEPLOOP:SAPLSPO5:0150/sub:SAPLSPO5:0150/radSPOPLI-SELFLAG[1,0]").select
-            oSession.findById("wnd[1]/tbar[0]/btn[0]").press
-            oSession.findById("wnd[1]/usr/ctxtDY_PATH").text = folderPath
-            oSession.findById("wnd[1]/usr/ctxtDY_FILENAME").text = fileName
-            oSession.findById("wnd[1]/tbar[0]/btn[11]").press
-            
-            maxRetries = 40
-            currentRetry = 0
-            fileReady = False
-            
-            Do While Not fileReady And currentRetry < maxRetries
-                If fso.FileExists(exportPath) Then
-                    If fso.GetFile(exportPath).Size > 0 Then 
-                        fileReady = True
-                    End If
-                End If
-                If Not fileReady Then 
-                    Call PauseVBS(2)
-                    currentRetry = currentRetry + 1
-                End If
-            Loop
-            
-            If Not fileReady Then 
-                VBS_LancerSAP = "<div class='msg-box msg-error'>Temps dépassé.</div>"
-                Exit Function
-            End If
-            
-            Set ts = fso.OpenTextFile(exportPath, 1, False, 0)
-            fileContent = ts.ReadAll()
-            ts.Close
-            
-            htmlResult = ""
-            countICs = 0
-            arrLines = Split(fileContent, vbCrLf)
-            Set regEx = CreateObject("VBScript.RegExp")
-            regEx.Global = True
-            regEx.Pattern = "\s{2,}"
-            
-            For iLine = 0 To UBound(arrLines)
-                strLine = Trim(arrLines(iLine))
-                If strLine <> "" Then
-                    strLine = Replace(strLine, vbTab, "|")
-                    strLine = regEx.Replace(strLine, "|")
-                    arrCols = Split(strLine, "|")
-                    ReDim finalArr(UBound(arrCols))
-                    elemCount = 0
-                    
-                    For k = 0 To UBound(arrCols)
-                        If Trim(arrCols(k)) <> "" Then 
-                            finalArr(elemCount) = Trim(arrCols(k))
-                            elemCount = elemCount + 1
-                        End If
-                    Next
-                    
-                    If elemCount >= 5 Then
-                        If (finalArr(0) = "IC" Or finalArr(0) = "QM1") And IsNumeric(finalArr(1)) Then
-                            currentAvis = finalArr(1)
-                            rawStatus = finalArr(2)
-                            currentCreator = finalArr(3)
-                            cDateDebut = finalArr(4)
-                            cStatut = ""
-                            actionTxt = ""
-                            
-                            If InStr(rawStatus, "INP") > 0 Then 
-                                cStatut = "INP"
-                                actionTxt = "IC pas signée"
-                            End If
-                            If InStr(rawStatus, "ACC") > 0 Then 
-                                cStatut = "ACC"
-                                actionTxt = "Début inter"
-                            End If
-                            If InStr(rawStatus, "STA") > 0 Then 
-                                cStatut = "STA"
-                                actionTxt = "Fin inter"
-                            End If
-                            If InStr(rawStatus, "QCL") > 0 Then 
-                                cStatut = "QCL"
-                                actionTxt = "Qualité"
-                            End If
-                            If InStr(rawStatus, "CRE") > 0 Then
-                                cStatut = "CRE"
-                                dPartsCRE = Split(cDateDebut, ".")
-                                If UBound(dPartsCRE) >= 2 Then
-                                    If DateSerial(CInt(dPartsCRE(2)), CInt(dPartsCRE(1)), CInt(dPartsCRE(0))) < Date() Then 
-                                        actionTxt = "Annulation" 
-                                    Else 
-                                        actionTxt = "Retour tâche"
-                                    End If
-                                End If
-                            End If
-                            If InStr(rawStatus, "CLO") > 0 Then 
-                                cStatut = "CLO"
-                            End If
-                            
-                            If cStatut <> "CLO" And cStatut <> "" Then
-                                styleCouleur = ""
-                                If actionTxt = "Annulation" Then styleCouleur = "color:#ef4444; font-weight:bold;"
-                                If actionTxt = "Retour tâche" Then styleCouleur = "color:#f59e0b; font-weight:bold;"
-                                If actionTxt = "Début inter" Then styleCouleur = "color:#10b981; font-weight:bold;"
-                                If actionTxt = "Fin inter" Then styleCouleur = "color:#0284c7; font-weight:bold;"
-                                If actionTxt = "Qualité" Then styleCouleur = "color:#8b5cf6; font-weight:bold;"
-                                If actionTxt = "IC pas signée" Then styleCouleur = "color:#64748b; font-weight:bold;"
-                                
-                                rowDataStr = currentAvis & "§<tr><td class='td-extract-select' style='display:none; text-align:center; padding:10px;'><input type='checkbox' class='chk-extract' style='cursor:pointer;'></td><td style='padding:10px; font-weight:bold;'> " & currentAvis & "</td><td style='padding:10px;'>" & cStatut & "</td><td style='padding:10px;'>" & currentCreator & "</td><td style='padding:10px;'>" & cDateDebut & "</td><td style='padding:10px; " & styleCouleur & "'><span style='" & styleCouleur & "'>" & actionTxt & "</span></td></tr>"
-                                ReDim Preserve listICs(countICs)
-                                listICs(countICs) = rowDataStr
-                                countICs = countICs + 1
-                            End If
-                        End If
-                    End If
-                End If
-            Next
-            
-            oSession.EndTransaction
-            
-            If countICs > 0 Then
-                For iSort = 0 To countICs - 2
-                    For jSort = iSort + 1 To countICs - 1
-                        avis1 = Split(listICs(iSort), "§")(0)
-                        avis2 = Split(listICs(jSort), "§")(0)
-                        If avis1 > avis2 Then 
-                            tempSort = listICs(iSort)
-                            listICs(iSort) = listICs(jSort)
-                            listICs(jSort) = tempSort
-                        End If
-                    Next
-                Next
-                For iSort = 0 To countICs - 1
-                    htmlResult = htmlResult & Split(listICs(iSort), "§")(1)
-                Next
-            End If
-            
-            If htmlResult = "" Then 
-                VBS_LancerSAP = "<div class='msg-box msg-info'>Aucune IC trouvée.</div>"
-                Exit Function
-            End If
-            
-            VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
-        End Function
-    
-
-        Function GetSAPSession()
-            On Error Resume Next
-            Set GetSAPSession = Nothing
-            Dim SapGuiAuto, appSAP, conn
-            Set SapGuiAuto = GetObject("SAPGUI")
-            If Err.Number <> 0 Then Exit Function
-            Set appSAP = SapGuiAuto.GetScriptingEngine
-            If appSAP.Children.Count = 0 Then Exit Function
-            Set conn = appSAP.Children(0)
-            If conn.Children.Count = 0 Then Exit Function
-            Set GetSAPSession = conn.Children(0)
-            On Error GoTo 0
-        End Function
-
-
-
-        Function VBS_LancerSAP(strDateDebutSAP, strDateFinSAP)
-            Dim exportPath, fso, wsh, folderPath, fileName, popupCheck
-            Dim maxRetries, currentRetry, fileReady, ts, fileContent
-            Dim arrLines, iLine, strLine, regEx, arrCols, finalArr()
-            Dim k, elemCount, htmlResult, listICs(), countICs
-            Dim currentAvis, rawStatus, currentCreator, cDateDebut
-            Dim cStatut, actionTxt, rowDataStr, dPartsCRE, styleCouleur
-            Dim iSort, jSort, tempSort, avis1, avis2
-            
-            On Error Resume Next
-            Set wsh = CreateObject("WScript.Shell")
-            folderPath = wsh.ExpandEnvironmentStrings("%APPDATA%")
-            fileName = "EXPORT_A350.txt"
-            exportPath = folderPath & "\" & fileName
-            
-            Set fso = CreateObject("Scripting.FileSystemObject")
-            If fso.FileExists(exportPath) Then 
-                fso.DeleteFile exportPath, True
-            End If
-            
-            Set oSession = GetSAPSession()
-            If oSession Is Nothing Then 
-                VBS_LancerSAP = "<div class='msg-box msg-error'>SAP inaccessible.</div>"
-                Exit Function
-            End If
-            
-            oSession.EndTransaction
-            oSession.StartTransaction "QM11"
-            oSession.findById("wnd[0]").Maximize
-            
-            oSession.findById("wnd[0]/tbar[1]/btn[17]").Press
-            oSession.findById("wnd[1]/usr/txtV-LOW").Text = "LAROCHE_IC"
-            oSession.findById("wnd[1]/usr/txtENAME-LOW").Text = ""
-            oSession.findById("wnd[1]/tbar[0]/btn[8]").Press 
-            
-            oSession.findById("wnd[0]/usr/ctxtQMDAT-LOW").Text = strDateDebutSAP
-            oSession.findById("wnd[0]/usr/ctxtQMDAT-HIGH").Text = strDateFinSAP
-            oSession.findById("wnd[0]/tbar[1]/btn[8]").Press
-            oSession.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[2]").select
-            
-            Set popupCheck = oSession.findById("wnd[1]", False)
-            If popupCheck Is Nothing Then 
-                VBS_LancerSAP = "<div class='msg-box msg-info'>Aucune IC trouvée.</div>"
-                Exit Function
-            End If
-            
-            oSession.findById("wnd[1]/usr/subSUBSCREEN_STEPLOOP:SAPLSPO5:0150/sub:SAPLSPO5:0150/radSPOPLI-SELFLAG[1,0]").select
-            oSession.findById("wnd[1]/tbar[0]/btn[0]").press
-            oSession.findById("wnd[1]/usr/ctxtDY_PATH").text = folderPath
-            oSession.findById("wnd[1]/usr/ctxtDY_FILENAME").text = fileName
-            oSession.findById("wnd[1]/tbar[0]/btn[11]").press
-            
-            maxRetries = 40
-            currentRetry = 0
-            fileReady = False
-            
-            Do While Not fileReady And currentRetry < maxRetries
-                If fso.FileExists(exportPath) Then
-                    If fso.GetFile(exportPath).Size > 0 Then 
-                        fileReady = True
-                    End If
-                End If
-                If Not fileReady Then 
-                    Call PauseVBS(2)
-                    currentRetry = currentRetry + 1
-                End If
-            Loop
-            
-            If Not fileReady Then 
-                VBS_LancerSAP = "<div class='msg-box msg-error'>Temps dépassé.</div>"
-                Exit Function
-            End If
-            
-            Set ts = fso.OpenTextFile(exportPath, 1, False, 0)
-            fileContent = ts.ReadAll()
-            ts.Close
-            
-            htmlResult = ""
-            countICs = 0
-            arrLines = Split(fileContent, vbCrLf)
-            Set regEx = CreateObject("VBScript.RegExp")
-            regEx.Global = True
-            regEx.Pattern = "\s{2,}"
-            
-            For iLine = 0 To UBound(arrLines)
-                strLine = Trim(arrLines(iLine))
-                If strLine <> "" Then
-                    strLine = Replace(strLine, vbTab, "|")
-                    strLine = regEx.Replace(strLine, "|")
-                    arrCols = Split(strLine, "|")
-                    ReDim finalArr(UBound(arrCols))
-                    elemCount = 0
-                    
-                    For k = 0 To UBound(arrCols)
-                        If Trim(arrCols(k)) <> "" Then 
-                            finalArr(elemCount) = Trim(arrCols(k))
-                            elemCount = elemCount + 1
-                        End If
-                    Next
-                    
-                    If elemCount >= 5 Then
-                        If (finalArr(0) = "IC" Or finalArr(0) = "QM1") And IsNumeric(finalArr(1)) Then
-                            currentAvis = finalArr(1)
-                            rawStatus = finalArr(2)
-                            currentCreator = finalArr(3)
-                            cDateDebut = finalArr(4)
-                            cStatut = ""
-                            actionTxt = ""
-                            
-                            If InStr(rawStatus, "INP") > 0 Then 
-                                cStatut = "INP"
-                                actionTxt = "IC pas signée"
-                            End If
-                            If InStr(rawStatus, "ACC") > 0 Then 
-                                cStatut = "ACC"
-                                actionTxt = "Début inter"
-                            End If
-                            If InStr(rawStatus, "STA") > 0 Then 
-                                cStatut = "STA"
-                                actionTxt = "Fin inter"
-                            End If
-                            If InStr(rawStatus, "QCL") > 0 Then 
-                                cStatut = "QCL"
-                                actionTxt = "Qualité"
-                            End If
-                            If InStr(rawStatus, "CRE") > 0 Then
-                                cStatut = "CRE"
-                                dPartsCRE = Split(cDateDebut, ".")
-                                If UBound(dPartsCRE) >= 2 Then
-                                    If DateSerial(CInt(dPartsCRE(2)), CInt(dPartsCRE(1)), CInt(dPartsCRE(0))) < Date() Then 
-                                        actionTxt = "Annulation" 
-                                    Else 
-                                        actionTxt = "Retour tâche"
-                                    End If
-                                End If
-                            End If
-                            If InStr(rawStatus, "CLO") > 0 Then 
-                                cStatut = "CLO"
-                            End If
-                            
-                            If cStatut <> "CLO" And cStatut <> "" Then
-                                styleCouleur = ""
-                                If actionTxt = "Annulation" Then styleCouleur = "color:#ef4444; font-weight:bold;"
-                                If actionTxt = "Retour tâche" Then styleCouleur = "color:#f59e0b; font-weight:bold;"
-                                If actionTxt = "Début inter" Then styleCouleur = "color:#10b981; font-weight:bold;"
-                                If actionTxt = "Fin inter" Then styleCouleur = "color:#0284c7; font-weight:bold;"
-                                If actionTxt = "Qualité" Then styleCouleur = "color:#8b5cf6; font-weight:bold;"
-                                If actionTxt = "IC pas signée" Then styleCouleur = "color:#64748b; font-weight:bold;"
-                                
-                                rowDataStr = currentAvis & "§<tr><td class='td-extract-select' style='display:none; text-align:center; padding:10px;'><input type='checkbox' class='chk-extract' style='cursor:pointer;'></td><td style='padding:10px; font-weight:bold;'> " & currentAvis & "</td><td style='padding:10px;'>" & cStatut & "</td><td style='padding:10px;'>" & currentCreator & "</td><td style='padding:10px;'>" & cDateDebut & "</td><td style='padding:10px; " & styleCouleur & "'><span style='" & styleCouleur & "'>" & actionTxt & "</span></td></tr>"
-                                ReDim Preserve listICs(countICs)
-                                listICs(countICs) = rowDataStr
-                                countICs = countICs + 1
-                            End If
-                        End If
-                    End If
-                End If
-            Next
-            
-            oSession.EndTransaction
-            
-            If countICs > 0 Then
-                For iSort = 0 To countICs - 2
-                    For jSort = iSort + 1 To countICs - 1
-                        avis1 = Split(listICs(iSort), "§")(0)
-                        avis2 = Split(listICs(jSort), "§")(0)
-                        If avis1 > avis2 Then 
-                            tempSort = listICs(iSort)
-                            listICs(iSort) = listICs(jSort)
-                            listICs(jSort) = tempSort
-                        End If
-                    Next
-                Next
-                For iSort = 0 To countICs - 1
-                    htmlResult = htmlResult & Split(listICs(iSort), "§")(1)
-                Next
-            End If
-            
-            If htmlResult = "" Then 
-                VBS_LancerSAP = "<div class='msg-box msg-info'>Aucune IC trouvée.</div>"
-                Exit Function
-            End If
-            
-            VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
-        End Function
-
-
 
         Function VBS_CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST)
             Dim arrRows, i, rowData, arrFields, y, r, msn, numOF, fullDesc, zoneI, zoneA, chkBox, strPoste
@@ -1213,65 +848,253 @@ Function callVBSLancerSAP(strDateDebutSAP, strDateFinSAP)
             VBS_CreerICs = resultString
         End Function
 
-
-
-        Function VBS_ExecuterActionSpecifique(icNum, actionType)
-            Dim res
-            WriteLog "------------------------------------------"
-            WriteLog "TRAITEMENT SPECIFIQUE IC : " & icNum & " | Action: " & actionType
-            If oSession Is Nothing Then Set oSession = GetSAPSession()
-            If oSession Is Nothing Then
-                WriteLog "ERREUR FATALE : Connexion SAP inactive."
-                VBS_ExecuterActionSpecifique = "ERREUR: SAP déconnecté."
-                Exit Function
-            End If
+        Function VBS_LancerSAP(strDateDebutSAP, strDateFinSAP)
+            Dim exportPath, fso, wsh, folderPath, fileName, popupCheck
+            Dim maxRetries, currentRetry, fileReady, ts, fileContent
+            Dim arrLines, iLine, strLine, regEx, arrCols, finalArr()
+            Dim k, elemCount, htmlResult, listICs(), countICs
+            Dim currentAvis, rawStatus, currentCreator, cDateDebut
+            Dim cStatut, actionTxt, rowDataStr, dPartsCRE, styleCouleur
+            Dim iSort, jSort, tempSort, avis1, avis2
             
-            If Trim(icNum) = "" Then 
-                VBS_ExecuterActionSpecifique = "ERREUR: Numéro vide"
-                Exit Function
-            End If
-            
-            Select Case actionType
-                Case "ANNULER"
-                    res = R_Annuler(icNum)
-                Case "DEBUT"
-                    res = R_Demarrer(icNum)
-                Case "FIN"
-                    res = R_Finir(icNum)
-                Case "QUALITE"
-                    res = R_Qualite(icNum)
-                Case Else
-                    res = "ERREUR: Action inconnue"
-            End Select
-            VBS_ExecuterActionSpecifique = res
-        End Function
-
-
-
-        Function AttendreElementSAP(cheminID, maxSecondes)
-            Dim tentatives, obj
-            tentatives = 0
-            AttendreElementSAP = False
             On Error Resume Next
-            Do While tentatives < maxSecondes
-                Set obj = oSession.FindById(cheminID, False)
-                If Not obj Is Nothing Then
-                    AttendreElementSAP = True
-                    On Error GoTo 0
-                    Exit Function
+            Set wsh = CreateObject("WScript.Shell")
+            folderPath = wsh.ExpandEnvironmentStrings("%APPDATA%")
+            fileName = "EXPORT_A350.txt"
+            exportPath = folderPath & "\" & fileName
+            
+            Set fso = CreateObject("Scripting.FileSystemObject")
+            If fso.FileExists(exportPath) Then 
+                fso.DeleteFile exportPath, True
+            End If
+            
+            Set oSession = GetSAPSession()
+            If oSession Is Nothing Then 
+                VBS_LancerSAP = "<div class='msg-box msg-error'>SAP inaccessible.</div>"
+                Exit Function
+            End If
+            
+            oSession.EndTransaction
+            oSession.StartTransaction "QM11"
+            oSession.findById("wnd[0]").Maximize
+            
+            oSession.findById("wnd[0]/tbar[1]/btn[17]").Press
+            oSession.findById("wnd[1]/usr/txtV-LOW").Text = "LAROCHE_IC"
+            oSession.findById("wnd[1]/usr/txtENAME-LOW").Text = ""
+            oSession.findById("wnd[1]/tbar[0]/btn[8]").Press 
+            
+            oSession.findById("wnd[0]/usr/ctxtQMDAT-LOW").Text = strDateDebutSAP
+            oSession.findById("wnd[0]/usr/ctxtQMDAT-HIGH").Text = strDateFinSAP
+            oSession.findById("wnd[0]/tbar[1]/btn[8]").Press
+            oSession.findById("wnd[0]/mbar/menu[0]/menu[3]/menu[2]").select
+            
+            Set popupCheck = oSession.findById("wnd[1]", False)
+            If popupCheck Is Nothing Then 
+                VBS_LancerSAP = "<div class='msg-box msg-info'>Aucune IC trouvée.</div>"
+                Exit Function
+            End If
+            
+            oSession.findById("wnd[1]/usr/subSUBSCREEN_STEPLOOP:SAPLSPO5:0150/sub:SAPLSPO5:0150/radSPOPLI-SELFLAG[1,0]").select
+            oSession.findById("wnd[1]/tbar[0]/btn[0]").press
+            oSession.findById("wnd[1]/usr/ctxtDY_PATH").text = folderPath
+            oSession.findById("wnd[1]/usr/ctxtDY_FILENAME").text = fileName
+            oSession.findById("wnd[1]/tbar[0]/btn[11]").press
+            
+            maxRetries = 40
+            currentRetry = 0
+            fileReady = False
+            
+            Do While Not fileReady And currentRetry < maxRetries
+                If fso.FileExists(exportPath) Then
+                    If fso.GetFile(exportPath).Size > 0 Then 
+                        fileReady = True
+                    End If
                 End If
-                Call PauseVBS(1)
-                tentatives = tentatives + 1
+                If Not fileReady Then 
+                    Call PauseVBS(2)
+                    currentRetry = currentRetry + 1
+                End If
             Loop
-            On Error GoTo 0
+            
+            If Not fileReady Then 
+                VBS_LancerSAP = "<div class='msg-box msg-error'>Temps dépassé.</div>"
+                Exit Function
+            End If
+            
+            Set ts = fso.OpenTextFile(exportPath, 1, False, 0)
+            fileContent = ts.ReadAll()
+            ts.Close
+            
+            htmlResult = ""
+            countICs = 0
+            arrLines = Split(fileContent, vbCrLf)
+            Set regEx = CreateObject("VBScript.RegExp")
+            regEx.Global = True
+            regEx.Pattern = "\s{2,}"
+            
+            For iLine = 0 To UBound(arrLines)
+                strLine = Trim(arrLines(iLine))
+                If strLine <> "" Then
+                    strLine = Replace(strLine, vbTab, "|")
+                    strLine = regEx.Replace(strLine, "|")
+                    arrCols = Split(strLine, "|")
+                    ReDim finalArr(UBound(arrCols))
+                    elemCount = 0
+                    
+                    For k = 0 To UBound(arrCols)
+                        If Trim(arrCols(k)) <> "" Then 
+                            finalArr(elemCount) = Trim(arrCols(k))
+                            elemCount = elemCount + 1
+                        End If
+                    Next
+                    
+                    If elemCount >= 5 Then
+                        If (finalArr(0) = "IC" Or finalArr(0) = "QM1") And IsNumeric(finalArr(1)) Then
+                            currentAvis = finalArr(1)
+                            rawStatus = finalArr(2)
+                            currentCreator = finalArr(3)
+                            cDateDebut = finalArr(4)
+                            cStatut = ""
+                            actionTxt = ""
+                            
+                            If InStr(rawStatus, "INP") > 0 Then 
+                                cStatut = "INP"
+                                actionTxt = "IC pas signée"
+                            End If
+                            If InStr(rawStatus, "ACC") > 0 Then 
+                                cStatut = "ACC"
+                                actionTxt = "Début inter"
+                            End If
+                            If InStr(rawStatus, "STA") > 0 Then 
+                                cStatut = "STA"
+                                actionTxt = "Fin inter"
+                            End If
+                            If InStr(rawStatus, "QCL") > 0 Then 
+                                cStatut = "QCL"
+                                actionTxt = "Qualité"
+                            End If
+                            If InStr(rawStatus, "CRE") > 0 Then
+                                cStatut = "CRE"
+                                dPartsCRE = Split(cDateDebut, ".")
+                                If UBound(dPartsCRE) >= 2 Then
+                                    If DateSerial(CInt(dPartsCRE(2)), CInt(dPartsCRE(1)), CInt(dPartsCRE(0))) < Date() Then 
+                                        actionTxt = "Annulation" 
+                                    Else 
+                                        actionTxt = "Retour tâche"
+                                    End If
+                                End If
+                            End If
+                            If InStr(rawStatus, "CLO") > 0 Then 
+                                cStatut = "CLO"
+                            End If
+                            
+                            If cStatut <> "CLO" And cStatut <> "" Then
+                                styleCouleur = ""
+                                If actionTxt = "Annulation" Then styleCouleur = "color:#ef4444; font-weight:bold;"
+                                If actionTxt = "Retour tâche" Then styleCouleur = "color:#f59e0b; font-weight:bold;"
+                                If actionTxt = "Début inter" Then styleCouleur = "color:#10b981; font-weight:bold;"
+                                If actionTxt = "Fin inter" Then styleCouleur = "color:#0284c7; font-weight:bold;"
+                                If actionTxt = "Qualité" Then styleCouleur = "color:#8b5cf6; font-weight:bold;"
+                                If actionTxt = "IC pas signée" Then styleCouleur = "color:#64748b; font-weight:bold;"
+                                
+                                rowDataStr = currentAvis & "§<tr><td class='td-extract-select' style='display:none; text-align:center; padding:10px;'><input type='checkbox' class='chk-extract' style='cursor:pointer;'></td><td style='padding:10px; font-weight:bold;'> " & currentAvis & "</td><td style='padding:10px;'>" & cStatut & "</td><td style='padding:10px;'>" & currentCreator & "</td><td style='padding:10px;'>" & cDateDebut & "</td><td style='padding:10px; " & styleCouleur & "'><span style='" & styleCouleur & "'>" & actionTxt & "</span></td></tr>"
+                                ReDim Preserve listICs(countICs)
+                                listICs(countICs) = rowDataStr
+                                countICs = countICs + 1
+                            End If
+                        End If
+                    End If
+                End If
+            Next
+            
+            oSession.EndTransaction
+            
+            If countICs > 0 Then
+                For iSort = 0 To countICs - 2
+                    For jSort = iSort + 1 To countICs - 1
+                        avis1 = Split(listICs(iSort), "§")(0)
+                        avis2 = Split(listICs(jSort), "§")(0)
+                        If avis1 > avis2 Then 
+                            tempSort = listICs(iSort)
+                            listICs(iSort) = listICs(jSort)
+                            listICs(jSort) = tempSort
+                        End If
+                    Next
+                Next
+                For iSort = 0 To countICs - 1
+                    htmlResult = htmlResult & Split(listICs(iSort), "§")(1)
+                Next
+            End If
+            
+            If htmlResult = "" Then 
+                VBS_LancerSAP = "<div class='msg-box msg-info'>Aucune IC trouvée.</div>"
+                Exit Function
+            End If
+            
+            VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
-
-
-</script>
+    </script>
 
     <script language="javascript">
     // ==================== WRAPPERS POUR APPELER VBSCRIPT ====================
-     +
+    // Utilise window.execScript qui est la seule méthode fiable en HTA
+    
+    function callVBSLancerSAP(dateStart, dateEnd) {
+        try {
+            // Nettoyer les dates pour éviter les injections
+            dateStart = String(dateStart).replace(/'/g, "''");
+            dateEnd = String(dateEnd).replace(/'/g, "''");
+            
+            var result = "";
+            var code = "On Error Resume Next\n" +
+                       "result = callVBSLancerSAP('" + dateStart + "', '" + dateEnd + "')\n" +
+                       "If Err.Number <> 0 Then\n" +
+                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
+                       "End If\n" +
+                       "On Error GoTo 0";
+            
+            window.execScript(code, "VBScript");
+            return result;
+        } catch(e) {
+            return "<div class='msg-box msg-error'>ERREUR JavaScript: " + e.message + "</div>";
+        }
+    }
+    
+    function callVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST) {
+        try {
+            strDate = String(strDate).replace(/'/g, "''");
+            strVacation = String(strVacation).replace(/'/g, "''");
+            strEquipe = String(strEquipe).replace(/'/g, "''");
+            strData = String(strData).replace(/'/g, "''");
+            strOP = String(strOP).replace(/'/g, "''");
+            strIQ = String(strIQ).replace(/'/g, "''");
+            strST = String(strST).replace(/'/g, "''");
+            
+            var result = "";
+            var code = "On Error Resume Next\n" +
+                       "result = callVBSCreerICs('" + strDate + "', '" + strVacation + "', '" + strEquipe + "', '" + strData + "', '" + strOP + "', '" + strIQ + "', '" + strST + "')\n" +
+                       "If Err.Number <> 0 Then\n" +
+                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
+                       "End If\n" +
+                       "On Error GoTo 0";
+            
+            window.execScript(code, "VBScript");
+            return result;
+        } catch(e) {
+            return "ERREUR JavaScript: " + e.message;
+        }
+    }
+    
+    function callVBSExecuterAction(icNum, actionType) {
+        try {
+            icNum = String(icNum).replace(/'/g, "''");
+            actionType = String(actionType).replace(/'/g, "''");
+            
+            var result = "";
+            var code = "On Error Resume Next\n" +
+                       "result = callVBSExecuterAction('" + icNum + "', '" + actionType + "')\n" +
+                       "If Err.Number <> 0 Then\n" +
+                       "  result = 'ERREUR VBS: ' & Err.Description\n" +
                        "End If\n" +
                        "On Error GoTo 0";
             
