@@ -1134,6 +1134,96 @@
 </script>
 
     <script language="javascript">
+
+        // ==================== FONCTIONS UTILITAIRES (Hissées avant utilisation) ====================
+function getTotalEditRows() {
+            var thead = document.querySelector("#tablePlanningMSN thead");
+            if (thead) {
+                var y = 0;
+                var el = thead;
+                while (el) { y += (el.offsetTop || 0); el = el.offsetParent; }
+                y += thead.offsetHeight;
+                var available = window.innerHeight - y - 55;
+                return Math.max(8, Math.floor(available / 38));
+            }
+            return Math.max(8, Math.floor((window.innerHeight - 285) / 38));
+        }
+
+        function ToggleEditMode() {
+            isEditingPlanning = true;
+            document.getElementById("btnModifierPlanning").style.display = "none";
+            document.getElementById("btnValidateEdit").style.display = "inline-block";
+            document.getElementById("btnCancelEdit").style.display = "inline-block";
+            RenderMSNTable();
+            RenderEquipeVacations();
+        }
+
+        function SaveAndExitEditMode() {
+            var newInputs = document.querySelectorAll(".new-member-input");
+            for (var i = 0; i < newInputs.length; i++) {
+                var nom = newInputs[i].value.trim();
+                if (!nom) continue;
+                var eqName = newInputs[i].getAttribute("data-eqname");
+                var row = newInputs[i].parentNode.parentNode.parentNode;
+                var sel = (row && row.cells && row.cells[0]) ? row.cells[0].getElementsByTagName("select")[0] : null;
+                var poste = (sel && sel.value) ? sel.value : "OP";
+                personnelData.push({nom: nom.toUpperCase(), poste: poste, equipe: eqName});
+            }
+            SaveData();
+            isEditingPlanning = false;
+            document.getElementById("btnModifierPlanning").style.display = "inline-block";
+            document.getElementById("btnValidateEdit").style.display = "none";
+            document.getElementById("btnCancelEdit").style.display = "none";
+            RenderMSNTable();
+            RenderEquipeVacations();
+        }
+
+        function CancelEditMode() {
+            isEditingPlanning = false;
+            document.getElementById("btnModifierPlanning").style.display = "inline-block";
+            document.getElementById("btnValidateEdit").style.display = "none";
+            document.getElementById("btnCancelEdit").style.display = "none";
+            RenderMSNTable();
+            RenderEquipeVacations();
+        }
+
+        function ResizeDashboard() {
+            var eff    = document.getElementById("cardEffectifs");
+            var aide   = document.getElementById("cardAide");
+            var alerte = document.getElementById("cardAlertes");
+            var stats  = document.getElementById("cardStats");
+            if (!eff || !aide) return;
+
+            // Egaliser ligne 1
+            eff.style.height = ""; aide.style.height = "";
+            var h1 = Math.max(eff.offsetHeight, aide.offsetHeight);
+            eff.style.height = h1 + "px"; aide.style.height = h1 + "px";
+
+            // Égaliser ligne 2 en fonction du contenu
+            if (alerte && stats) {
+                alerte.style.height = ""; stats.style.height = "";
+                var alerteHeight = alerte.offsetHeight;
+                var statsHeight = stats.offsetHeight;
+                var maxHeight = Math.max(alerteHeight, statsHeight);
+                alerte.style.height = maxHeight + "px";
+                stats.style.height = maxHeight + "px";
+            }
+        }
+
+        // --- 8. INITIALISATION APPLICATIVE AU BOOTSTRAP ---
+        window.onload = function() {
+            if (!window.personnelData) window.personnelData = [];
+            if (!window.msnData) window.msnData = [];
+            if (!window.stopActionFlag) window.stopActionFlag = false;
+
+            LoadData();
+            var tbody = document.getElementById('tbodySaisieCreation'); if(tbody) tbody.innerHTML = '';
+            for(var i=0; i<18; i++) { AjouterLigneSaisieIC(); }
+            
+            // Lancement du contrôle des droits
+            DemarrerVerificationSysteme();
+        };
+
     // ==================== PATTERN: Inputs Cachés pour communiquer avec VBScript ====================
     // Stratégie: JavaScript remplit les inputs cachés, puis déclenche les fonctions VBScript
     
@@ -2113,93 +2203,7 @@
 
         var isEditingPlanning = false;
 
-        function getTotalEditRows() {
-            var thead = document.querySelector("#tablePlanningMSN thead");
-            if (thead) {
-                var y = 0;
-                var el = thead;
-                while (el) { y += (el.offsetTop || 0); el = el.offsetParent; }
-                y += thead.offsetHeight;
-                var available = window.innerHeight - y - 55;
-                return Math.max(8, Math.floor(available / 38));
-            }
-            return Math.max(8, Math.floor((window.innerHeight - 285) / 38));
-        }
-
-        function ToggleEditMode() {
-            isEditingPlanning = true;
-            document.getElementById("btnModifierPlanning").style.display = "none";
-            document.getElementById("btnValidateEdit").style.display = "inline-block";
-            document.getElementById("btnCancelEdit").style.display = "inline-block";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function SaveAndExitEditMode() {
-            var newInputs = document.querySelectorAll(".new-member-input");
-            for (var i = 0; i < newInputs.length; i++) {
-                var nom = newInputs[i].value.trim();
-                if (!nom) continue;
-                var eqName = newInputs[i].getAttribute("data-eqname");
-                var row = newInputs[i].parentNode.parentNode.parentNode;
-                var sel = (row && row.cells && row.cells[0]) ? row.cells[0].getElementsByTagName("select")[0] : null;
-                var poste = (sel && sel.value) ? sel.value : "OP";
-                personnelData.push({nom: nom.toUpperCase(), poste: poste, equipe: eqName});
-            }
-            SaveData();
-            isEditingPlanning = false;
-            document.getElementById("btnModifierPlanning").style.display = "inline-block";
-            document.getElementById("btnValidateEdit").style.display = "none";
-            document.getElementById("btnCancelEdit").style.display = "none";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function CancelEditMode() {
-            isEditingPlanning = false;
-            document.getElementById("btnModifierPlanning").style.display = "inline-block";
-            document.getElementById("btnValidateEdit").style.display = "none";
-            document.getElementById("btnCancelEdit").style.display = "none";
-            RenderMSNTable();
-            RenderEquipeVacations();
-        }
-
-        function ResizeDashboard() {
-            var eff    = document.getElementById("cardEffectifs");
-            var aide   = document.getElementById("cardAide");
-            var alerte = document.getElementById("cardAlertes");
-            var stats  = document.getElementById("cardStats");
-            if (!eff || !aide) return;
-
-            // Egaliser ligne 1
-            eff.style.height = ""; aide.style.height = "";
-            var h1 = Math.max(eff.offsetHeight, aide.offsetHeight);
-            eff.style.height = h1 + "px"; aide.style.height = h1 + "px";
-
-            // Égaliser ligne 2 en fonction du contenu
-            if (alerte && stats) {
-                alerte.style.height = ""; stats.style.height = "";
-                var alerteHeight = alerte.offsetHeight;
-                var statsHeight = stats.offsetHeight;
-                var maxHeight = Math.max(alerteHeight, statsHeight);
-                alerte.style.height = maxHeight + "px";
-                stats.style.height = maxHeight + "px";
-            }
-        }
-
-        // --- 8. INITIALISATION APPLICATIVE AU BOOTSTRAP ---
-        window.onload = function() {
-            if (!window.personnelData) window.personnelData = [];
-            if (!window.msnData) window.msnData = [];
-            if (!window.stopActionFlag) window.stopActionFlag = false;
-
-            LoadData();
-            var tbody = document.getElementById('tbodySaisieCreation'); if(tbody) tbody.innerHTML = '';
-            for(var i=0; i<18; i++) { AjouterLigneSaisieIC(); }
-            
-            // Lancement du contrôle des droits
-            DemarrerVerificationSysteme();
-        };
+        
     
         
 </script>
