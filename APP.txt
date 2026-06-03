@@ -164,31 +164,29 @@
             Set GetSAPSession = Nothing
             Dim SapGuiAuto, appSAP, conn, attempt
             
-            WriteLog "GetSAPSession: Tentative de connexion SAP..."
-            
             For attempt = 1 To 3
-                WriteLog "GetSAPSession: Tentative " & attempt & "/3"
                 Set SapGuiAuto = GetObject("SAPGUI")
                 If Err.Number <> 0 Then 
-                    WriteLog "GetSAPSession: GetObject(SAPGUI) ECHOUE - " & Err.Description
-                    Call PauseVBS(1)
+                    If attempt = 3 Then
+                        MsgBox "ERREUR FATALE: GetObject(SAPGUI) échoue" & vbCrLf & vbCrLf & "Solutions:" & vbCrLf & "1. SAP GUI Scripting doit être activé" & vbCrLf & "2. Ouvrez SAP et naviguez vers une transaction" & vbCrLf & "3. Relancez l'extraction", 16, "Diagnostic: SAPGUI"
+                    End If
                     Err.Clear
                 Else
-                    WriteLog "GetSAPSession: GetObject(SAPGUI) OK"
                     Set appSAP = SapGuiAuto.GetScriptingEngine
                     If appSAP.Children.Count = 0 Then 
-                        WriteLog "GetSAPSession: appSAP.Children.Count = 0"
+                        If attempt = 3 Then
+                            MsgBox "ERREUR: Aucune connexion SAP trouvée" & vbCrLf & vbCrLf & "Solutions:" & vbCrLf & "1. Ouvrez une session SAP" & vbCrLf & "2. Connectez-vous avec vos identifiants" & vbCrLf & "3. Naviguez à une transaction (ex: QM11)" & vbCrLf & "4. Relancez l'extraction", 16, "Diagnostic: Connexion"
+                        End If
                         Err.Clear
                     Else
-                        WriteLog "GetSAPSession: appSAP.Children.Count = " & appSAP.Children.Count
                         Set conn = appSAP.Children(0)
                         If conn.Children.Count = 0 Then 
-                            WriteLog "GetSAPSession: conn.Children.Count = 0"
+                            If attempt = 3 Then
+                                MsgBox "ERREUR: Aucune fenêtre SAP trouvée" & vbCrLf & vbCrLf & "Solutions:" & vbCrLf & "1. Ouvrez une transaction SAP" & vbCrLf & "2. Par exemple: Naviguez vers QM11" & vbCrLf & "3. Relancez l'extraction", 16, "Diagnostic: Fenêtre"
+                            End If
                             Err.Clear
                         Else
-                            WriteLog "GetSAPSession: conn.Children.Count = " & conn.Children.Count
                             Set GetSAPSession = conn.Children(0)
-                            WriteLog "GetSAPSession: SUCCESS - Session trouvée!"
                             On Error GoTo 0
                             Exit Function
                         End If
@@ -196,7 +194,6 @@
                 End If
                 Call PauseVBS(2)
             Next
-            WriteLog "GetSAPSession: ECHEC après 3 tentatives"
             On Error GoTo 0
         End Function
 
