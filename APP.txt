@@ -1912,7 +1912,7 @@
                 try {
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
-                    callVBSExtraction(dSapStart, dSapEnd); var resultatHTML = document.getElementById("resultatExtraction").innerHTMLdSapStart, dSapEnd);
+                    callVBSExtraction(dSapStart, dSapEnd); var resultatHTML = document.getElementById("resultatExtraction").innerHTML || "";
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
