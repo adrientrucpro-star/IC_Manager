@@ -1154,9 +1154,6 @@
             
             VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='16.66%'>Numéro</th><th width='16.66%'>Statut</th><th width='16.66%'>Créé par</th><th width='16.66%'>Date</th><th width='16.66%'>Vacation</th><th width='16.66%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
-    </script>
-
-    <script language="javascript">
     // ==================== APPELS DIRECTS AUX FONCTIONS VBSCRIPT ====================
         var VERSION_ACTUELLE = "8.3";
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/16412138a02d05390dd14ed26afa80f2/raw/IcManager.txt";
