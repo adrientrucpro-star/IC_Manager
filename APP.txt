@@ -2042,6 +2042,39 @@
 
     <script language="javascript">
     // ==================== APPELS DIRECTS AUX FONCTIONS VBSCRIPT ====================
+    // Wrappers globaux pour appels VBScript - résout le problème de contexte dans setTimeout
+    
+    var vbsResult = null;
+    
+    function CallVBSLancerSAP(dateStart, dateEnd) {
+        try {
+            vbsResult = VBS_LancerSAP(dateStart, dateEnd);
+            return vbsResult;
+        } catch(e) {
+            console.error("Erreur VBS_LancerSAP: " + e.message);
+            return "<div class='msg-box msg-error'>ERREUR: VBS_LancerSAP - " + e.message + "</div>";
+        }
+    }
+    
+    function CallVBSCreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST) {
+        try {
+            vbsResult = VBS_CreerICs(strDate, strVacation, strEquipe, strData, strOP, strIQ, strST);
+            return vbsResult;
+        } catch(e) {
+            console.error("Erreur VBS_CreerICs: " + e.message);
+            return "ERREUR: VBS_CreerICs - " + e.message;
+        }
+    }
+    
+    function CallVBSExecuterActionSpecifique(icNum, actionType) {
+        try {
+            vbsResult = VBS_ExecuterActionSpecifique(icNum, actionType);
+            return vbsResult;
+        } catch(e) {
+            console.error("Erreur VBS_ExecuterActionSpecifique: " + e.message);
+            return "ERREUR: VBS_ExecuterActionSpecifique - " + e.message;
+        }
+    }
         var VERSION_ACTUELLE = "8.3";
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/9158de12ec4159774acec4956728945e/raw/IcManager.txt";
         var URL_TELECHARGEMENT_APP = "https://drive.google.com/file/d/1mZaDZqVggQ82yAtysOg5CFScVBtdaTft/view?usp=drive_link";
@@ -2670,7 +2703,7 @@
             var tbody = document.getElementById("tbodySaisieCreation");
             setTimeout(function() {
                 try {
-                    var resultStr = VBS_CreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
+                    var resultStr = CallVBSCreerICs(dateSouhaitee, vacation, equipe, rowItem.dataStr, strOP, strIQ, strST);
                     if (resultStr && resultStr.indexOf("ERREUR") === -1 && resultStr.indexOf("Annulé") === -1) {
                         var cellDiv = tbody.rows[rowItem.index].cells[12].querySelector('div');
                         if(cellDiv) { if(cellDiv.innerText !== undefined) cellDiv.innerText = resultStr; else cellDiv.innerText = resultStr; }
@@ -2947,7 +2980,7 @@
                     var s1 = dateStartInput.split('/'), s2 = dateEndInput.split('/');
                     var dSapStart = s1[0]+"."+s1[1]+"."+s1[2], dSapEnd = s2[0]+"."+s2[1]+"."+s2[2];
                     // Extraction uniquement via SAP (VBScript). Pas de repli local hors-ligne.
-                    var resultatHTML = VBS_LancerSAP(dSapStart, dSapEnd);
+                    var resultatHTML = CallVBSLancerSAP(dSapStart, dSapEnd);
                     btn.innerHTML = textInitial; btn.className = "btn-extract"; btn.disabled = false;
                     if (resultatHTML) {
                         document.getElementById("divExtractResultsContainer").innerHTML = resultatHTML;
@@ -3068,7 +3101,7 @@
             var icNum = (tr.cells[1].innerText).replace(/^\s+|\s+$/g, ""); tr.style.backgroundColor = "#fef3c7"; 
             setTimeout(function() {
                 try {
-                    var res = VBS_ExecuterActionSpecifique(icNum, type);
+                    var res = CallVBSExecuterActionSpecifique(icNum, type);
                     if (res.indexOf("ERREUR") !== -1) { tr.style.backgroundColor = "#fee2e2"; tr.cells[6].innerHTML = "<span style='color:#b91c1c;'>" + escapeHtml(res) + "</span>"; }
                     else {
                         tr.style.backgroundColor = "#dcfce3";
