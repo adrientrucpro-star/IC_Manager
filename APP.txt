@@ -156,56 +156,6 @@
     </style>
 
     <script language="VBScript">
-        ' Boite de dialogue d'erreur avec titre "Erreur" (appelable depuis JScript).
-        Sub AfficherMsgErreur(strMessage)
-            MsgBox strMessage, vbOKOnly + vbExclamation, "Erreur"
-        End Sub
-
-        ' --- Securite : Correction des chaines brisees et protection XSS
-        Const NOM_ENTREPRISE = "LAROCHE INDUSTRIES"
-        Const CODE_PROGRAMME = "A350-XWB"
-        Const CODE_USINE = "FFF1"
-        Const CODE_CA = "WA999"
-
-        Const SAP_TAB_ENTETE = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB01/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
-        Const SAP_TAB_INTERV = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB02/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
-        Const SAP_TAB_PERSON = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB03/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
-        Const SAP_TAB_19 = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB19/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
-        Const SAP_TAB_20 = "wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB20/ssubSUB_GROUP_10:SAPLIQS0:7235/subCUSTOM_SCREEN:SAPLIQS0:7212/"
-
-        Dim oSession 
-
-        ' Fonction d'echappement HTML pour prevenir les failles XSS
-        Function VBS_EscapeHTML(ByVal str)
-            If IsNull(str) Or IsEmpty(str) Then
-                VBS_EscapeHTML = ""
-                Exit Function
-            End If
-            Dim res
-            res = CStr(str)
-            res = Replace(res, "&", "&amp;")
-            res = Replace(res, "<", "&lt;")
-            res = Replace(res, ">", "&gt;")
-            res = Replace(res, """", "&quot;")
-            res = Replace(res, "'", "&#39;")
-            VBS_EscapeHTML = res
-        End Function
-
-        Sub WriteLog(msg)
-            On Error Resume Next
-            Dim fso, logStream, logPath, wsh
-            Set wsh = CreateObject("WScript.Shell")
-            logPath = wsh.ExpandEnvironmentStrings("%APPDATA%") & "\SAP_LOG.txt"
-            Set fso = CreateObject("Scripting.FileSystemObject")
-            Set logStream = fso.OpenTextFile(logPath, 8, True) 
-            logStream.WriteLine Now & " | " & msg
-            logStream.Close
-            Set logStream = Nothing
-            Set fso = Nothing
-            Set wsh = Nothing
-            On Error GoTo 0
-        End Sub
-
         Function GetSAPSession()
             On Error Resume Next
             Set GetSAPSession = Nothing
@@ -219,14 +169,6 @@
             Set GetSAPSession = conn.Children(0)
             On Error GoTo 0
         End Function
-
-        Sub PauseVBS(secondes)
-            Dim t
-            t = Timer
-            Do While Timer < t + secondes
-                If Timer < t Then Exit Do ' protection minuit (remise à zéro de Timer)
-            Loop
-        End Sub
 
         Function AttendreElementSAP(cheminID, maxSecondes)
             Dim tentatives, obj
@@ -442,26 +384,15 @@
             End If
             
             oSession.FindById("wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB03").Select
-            Dim shellDem
-            Set shellDem = oSession.FindById("wnd[0]/shellcont/shell", False)
-            If shellDem Is Nothing Then
-                R_Demarrer = "ERREUR: SAP pas prêt (arbre des tâches indisponible)"
-                Exit Function
-            End If
-            shellDem.ClickLink "1100", "Column01"
-
-            Dim btn21Dem
-            Set btn21Dem = oSession.FindById("wnd[0]/tbar[1]/btn[21]", False)
-            If btn21Dem Is Nothing Then
-                R_Demarrer = "ERREUR: Bouton Tâche introuvable (SAP pas prêt ?)"
-                Exit Function
-            End If
-            If btn21Dem.Text = "" Then
+            oSession.FindById("wnd[0]/shellcont/shell").ClickLink "1100", "Column01"
+            
+            btnText = oSession.FindById("wnd[0]/tbar[1]/btn[21]").Text
+            If btnText = "" Then 
                 R_Demarrer = "ERREUR: Tâche déjà passée"
                 Exit Function
             End If
-
-            btn21Dem.Press
+            
+            oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
             oSession.FindById("wnd[0]").SendVKey 0
             oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press 
             
@@ -481,46 +412,40 @@
             R_Finir = "ERREUR: Fin d'inter. impossible"
             
             ouverture = OuvrirQM02_Dynamique(icNum)
-            If ouverture <> "OK" Then
+            If ouverture <> "OK" Then 
                 R_Finir = ouverture
                 Exit Function
             End If
-
-            oSession.FindById("wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB03").Select
+         
             oSession.FindById("wnd[0]/shellcont/shell").ClickLink "1100", "Column01"
-
-            Dim btn21Fin
-            Set btn21Fin = oSession.FindById("wnd[0]/tbar[1]/btn[21]", False)
-            If btn21Fin Is Nothing Then
-                R_Finir = "ERREUR: Bouton Tâche introuvable (SAP pas prêt ?)"
-                Exit Function
-            End If
-            If btn21Fin.Text = "" Then
+            
+            btnText = oSession.FindById("wnd[0]/tbar[1]/btn[21]").Text
+            If btnText = "" Then 
                 R_Finir = "ERREUR: Tâche déjà passée"
                 Exit Function
             End If
-
+            
             oSession.FindById("wnd[0]/usr/cmbZONE").Key = "YES"
-            btn21Fin.Press
-            Call PauseVBS(1)
-
+            oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
+            Call PauseVBS(0)
+            
             Set tbar1 = oSession.FindById("wnd[0]/tbar[1]")
             If Not tbar1 Is Nothing Then
                 For c = 0 To tbar1.Children.Count - 1
-                    If InStr(1, UCase(tbar1.Children(c).Text), "TERMINER", 1) > 0 Or InStr(1, UCase(tbar1.Children(c).Tooltip), "TERMINER", 1) > 0 Then
+                    If InStr(1, UCase(tbar1.Children(c).Text), "TERMINER", 1) > 0 Or InStr(1, UCase(tbar1.Children(c).Tooltip), "TERMINER", 1) > 0 Then 
                         tbar1.Children(c).Press
                         Exit For
                     End If
                 Next
             End If
-
+            
             oSession.FindById("wnd[0]").SendVKey 0
-            oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press
-
+            oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press 
+            
             checkSave = ValiderSauvegardeSAP()
-            If checkSave <> "OK" Then
-                R_Finir = checkSave
-            Else
+            If checkSave <> "OK" Then 
+                R_Finir = checkSave 
+            Else 
                 R_Finir = "OK"
             End If
             On Error GoTo 0
@@ -553,38 +478,33 @@
             
             oSession.FindById("wnd[0]/shellcont/shell").ClickLink "1100", "Column01"
             
-            Dim btn21Qua
-            Set btn21Qua = oSession.FindById("wnd[0]/tbar[1]/btn[21]", False)
-            If btn21Qua Is Nothing Then
-                R_Qualite = "ERREUR: Bouton Tâche introuvable (SAP pas prêt ?)"
-                Exit Function
-            End If
-            If btn21Qua.Text = "" Then
+            btnText = oSession.FindById("wnd[0]/tbar[1]/btn[21]").Text
+            If btnText = "" Then 
                 R_Qualite = "ERREUR: Tâche obsolète"
                 Exit Function
             End If
-
+            
             oSession.FindById("wnd[0]/usr/cmbZONE").Key = "YES"
-            btn21Qua.Press
-            Call PauseVBS(1)
-
+            oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
+            Call PauseVBS(0)
+            
             Set tbar1 = oSession.FindById("wnd[0]/tbar[1]")
             If Not tbar1 Is Nothing Then
                 For c = 0 To tbar1.Children.Count - 1
-                    If InStr(1, UCase(tbar1.Children(c).Text), "TERMINER", 1) > 0 Or InStr(1, UCase(tbar1.Children(c).Tooltip), "TERMINER", 1) > 0 Then
+                    If InStr(1, UCase(tbar1.Children(c).Text), "TERMINER", 1) > 0 Or InStr(1, UCase(tbar1.Children(c).Tooltip), "TERMINER", 1) > 0 Then 
                         tbar1.Children(c).Press
                         Exit For
                     End If
                 Next
             End If
-
+            
             oSession.FindById("wnd[0]").SendVKey 0
-            oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press
-
+            oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press 
+            
             checkSave = ValiderSauvegardeSAP()
-            If checkSave <> "OK" Then
-                R_Qualite = checkSave
-            Else
+            If checkSave <> "OK" Then 
+                R_Qualite = checkSave 
+            Else 
                 R_Qualite = "OK"
             End If
             On Error GoTo 0
@@ -613,13 +533,11 @@
             resultString = ""
     
             Set oSession = GetSAPSession()
-            If oSession Is Nothing Then
-                WriteLog "VBS_CreerICs : SAP fermé (session introuvable)."
+            If oSession Is Nothing Then 
                 VBS_CreerICs = "ERREUR : SAP fermé."
                 Exit Function
             End If
-            WriteLog "=== VBS_CreerICs | Date=" & strDate & " | Vacation=" & strVacation & " | Equipe=" & strEquipe & " ==="
-
+         
             dateSapFormat = Replace(strDate, "/", ".")
             
             For i = 0 To UBound(arrRows)
@@ -634,10 +552,8 @@
                     zoneA = arrFields(4)
                     chkBox = arrFields(5)
                     strPoste = UCase(arrFields(6))
-                    WriteLog "Ligne IC | MSN=" & msn & " | OF=" & numOF & " | ZoneI=" & zoneI & " | ZoneA=" & zoneA & " | Case=" & chkBox & " | PosteFAL=" & strPoste
-
-                    If InStr(1, fullDesc, "//") = 0 Then
-                        WriteLog "ERREUR format descriptif (MSN " & msn & ") : '//' absent."
+                    
+                    If InStr(1, fullDesc, "//") = 0 Then 
                         VBS_CreerICs = "ERREUR : Format descriptif."
                         Exit Function
                     End If
@@ -687,23 +603,16 @@
                             hPlus2 = Right("0" & Hour(futureTime), 2) & ":" & Right("0" & Minute(futureTime), 2)
                             
                             If strVacation = "Jour" Then
-                                ' Seuil aligné sur le contrôle JS : interdiction à partir de 14h41
-                                ' (l'heure 14h40 pile reste autorisée, comme "supérieure à 14h40").
-                                If totalMins >= (7 * 60) And totalMins < (14 * 60 + 41) Then
+                                If totalMins >= (7 * 60) And totalMins < (14 * 60 + 43) Then
                                     H1 = hPlus2
-                                ElseIf totalMins >= (14 * 60 + 41) Then
-                                    MsgBox "La vacation 'Jour' (limite de création 14h40) est dépassée." & vbCrLf & "Impossible de générer une heure de début correcte pour le MSN " & msn & ".", 48, "Horaire incompatible"
+                                ElseIf totalMins >= (14 * 60 + 43) Then
+                                    MsgBox "La vacation 'Jour' (fin à 14h45) est bientôt ou déjà terminée." & vbCrLf & "Impossible de générer une heure de début correcte pour le MSN " & msn & ".", 48, "Horaire incompatible"
                                     VBS_CreerICs = "Annulé"
                                     Exit Function
                                 End If
                             End If
                             
                             If strVacation = "Soir" Then
-                                If isToday And totalMins >= (23 * 60 + 57) Then
-                                    MsgBox "La vacation 'Soir' est terminée (après 23h57)." & vbCrLf & "L'intervention sur le MSN " & msn & " est annulée.", 48, "Horaire dépassé"
-                                    VBS_CreerICs = "Annulé"
-                                    Exit Function
-                                End If
                                 If totalMins >= (14 * 60 + 45) And totalMins < (23 * 60 + 57) Then
                                     H1 = hPlus2
                                 End If
@@ -835,10 +744,7 @@
                         oSession.FindById(SAP_TAB_INTERV & "subSUBSCREEN_3:SAPLIQS0:7901/subUSER0001:SAPLXQQM:0408/radW_SECU_MEAS_408_12_6").Select
                         oSession.FindById(SAP_TAB_INTERV & "subSUBSCREEN_3:SAPLIQS0:7901/subUSER0001:SAPLXQQM:0408/radW_SECU_MEAS_408_21_5").Select
                         Err.Clear
-                        ' On NE remet PAS On Error GoTo 0 ici : cela couperait la gestion d'erreur
-                        ' (On Error Resume Next ligne 595) pour TOUT le reste de la création des IC
-                        ' P-OFF/CC11. On conserve donc le Resume Next jusqu'à la fin de la fonction.
-                        On Error Resume Next
+                        On Error GoTo 0
                     Else
                         oSession.FindById(SAP_TAB_INTERV & "subSUBSCREEN_3:SAPLIQS0:7901/subUSER0001:SAPLXQQM:0408/chkZDPQMTQNICDATA-Z_NO_SAFETY_MEASURES").Selected = True
                     End If
@@ -910,33 +816,27 @@
                     oSession.FindById("wnd[0]/usr/tabsTAB_GROUP_10/tabp10\TAB20").Select
                     oSession.FindById(SAP_TAB_20 & "subSUBSCREEN_1:SAPLIQS0:7900/ssubUSER0001:SAPLXQQM:0412/tblSAPLXQQMT_TBCTRL_ATA/ctxtWA_ATA_CODE_412-ATA[0,0]").Text = "53"
                     
+                    createdIC = oSession.FindById("wnd[0]/usr/subSCREEN_1:SAPLIQS0:2000/ctxtVIQMEL-QMNUM").Text
+                    
                     oSession.FindById("wnd[0]/shellcont/shell").SelectItem "1100", "Column01"
                     oSession.FindById("wnd[0]/shellcont/shell").ClickLink "1100", "Column01"
-
+                    
                     reponseMsgBox = MsgBox("Êtes-vous sûr de créer cette fiche ?", vbQuestion + vbOKCancel, "Vérification PEA")
-                    If reponseMsgBox = 2 Then
+                    If reponseMsgBox = 2 Then 
                         oSession.FindById("wnd[0]/tbar[0]/btn[15]").Press
                         oSession.FindById("wnd[0]/tbar[0]/btn[15]").Press
                         oSession.FindById("wnd[1]/usr/btnSPOP-OPTION2").Press
                         VBS_CreerICs = "Annulé"
                         Exit Function
                     End If
-
+                    
                     oSession.FindById("wnd[0]/usr/cmbCONFIRM").Key = "YES"
                     oSession.FindById("wnd[0]/tbar[1]/btn[21]").Press
-                    oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press
-                    Call PauseVBS(1)
-                    createdIC = oSession.FindById("wnd[0]/usr/subSCREEN_1:SAPLIQS0:2000/ctxtVIQMEL-QMNUM").Text
-                    If createdIC = "" Then
-                        WriteLog "ERREUR : numéro IC non lu après sauvegarde (MSN " & msn & ")."
-                        VBS_CreerICs = "ERREUR : Numéro IC non lu après sauvegarde (SAP lent ?). Vérifiez manuellement dans QM01."
-                        Exit Function
-                    End If
-                    WriteLog "IC créée : " & createdIC & " (MSN " & msn & ")."
-
-                    If resultString = "" Then
-                        resultString = createdIC
-                    Else
+                    oSession.FindById("wnd[0]/tbar[0]/btn[11]").Press 
+                    
+                    If resultString = "" Then 
+                        resultString = createdIC 
+                    Else 
                         resultString = resultString & "§" & createdIC
                     End If
                 End If
@@ -956,15 +856,12 @@
             
             On Error Resume Next
             Set wsh = CreateObject("WScript.Shell")
-            folderPath = wsh.ExpandEnvironmentStrings("%APPDATA%") & "\IC_Manager"
-            fileName = "EXPORT_IC.txt"
+            folderPath = wsh.ExpandEnvironmentStrings("%APPDATA%")
+            fileName = "EXPORT_A350.txt"
             exportPath = folderPath & "\" & fileName
-
+            
             Set fso = CreateObject("Scripting.FileSystemObject")
-            If Not fso.FolderExists(folderPath) Then
-                fso.CreateFolder folderPath
-            End If
-            If fso.FileExists(exportPath) Then
+            If fso.FileExists(exportPath) Then 
                 fso.DeleteFile exportPath, True
             End If
             
@@ -1036,14 +933,9 @@
             For iLine = 0 To UBound(arrLines)
                 strLine = Trim(arrLines(iLine))
                 If strLine <> "" Then
-                    ' Si la ligne contient des tabulations, on découpe UNIQUEMENT dessus
-                    ' (les valeurs gardent leurs espaces internes). Sinon (colonnes alignées
-                    ' par des espaces), on compacte les blocs de 2+ espaces.
-                    If InStr(strLine, vbTab) > 0 Then
-                        arrCols = Split(strLine, vbTab)
-                    Else
-                        arrCols = Split(regEx.Replace(strLine, "|"), "|")
-                    End If
+                    strLine = Replace(strLine, vbTab, "|")
+                    strLine = regEx.Replace(strLine, "|")
+                    arrCols = Split(strLine, "|")
                     ReDim finalArr(UBound(arrCols))
                     elemCount = 0
                     
@@ -1054,19 +946,12 @@
                         End If
                     Next
                     
-                    If elemCount >= 4 Then
-                        If IsNumeric(finalArr(0)) And Len(Trim(finalArr(0))) >= 8 Then
-                            currentAvis = VBS_EscapeHTML(finalArr(0))
-                            rawStatus = finalArr(1)
-                            currentCreator = VBS_EscapeHTML(finalArr(2))
-                            cDateDebut = VBS_EscapeHTML(finalArr(3))
-                            cVacation = ""
-                            If elemCount >= 5 Then
-                                hPartVac = Split(Trim(finalArr(4)), ":")
-                                If IsNumeric(hPartVac(0)) Then
-                                    If CInt(hPartVac(0)) < 15 Then cVacation = "Jour" Else cVacation = "Soir"
-                                End If
-                            End If
+                    If elemCount >= 5 Then
+                        If (finalArr(0) = "IC" Or finalArr(0) = "QM1") And IsNumeric(finalArr(1)) Then
+                            currentAvis = VBS_EscapeHTML(finalArr(1))
+                            rawStatus = finalArr(2)
+                            currentCreator = VBS_EscapeHTML(finalArr(3))
+                            cDateDebut = VBS_EscapeHTML(finalArr(4))
                             cStatut = ""
                             actionTxt = ""
                             
@@ -1088,15 +973,12 @@
                             End If
                             If InStr(rawStatus, "CRE") > 0 Then
                                 cStatut = "CRE"
-                                actionTxt = "Annulation"
                                 dPartsCRE = Split(cDateDebut, ".")
                                 If UBound(dPartsCRE) >= 2 Then
-                                    icDateCRE = DateSerial(CInt(dPartsCRE(2)), CInt(dPartsCRE(1)), CInt(dPartsCRE(0)))
-                                    If icDateCRE > Date() Then
+                                    If DateSerial(CInt(dPartsCRE(2)), CInt(dPartsCRE(1)), CInt(dPartsCRE(0))) < Date() Then 
+                                        actionTxt = "Annulation" 
+                                    Else 
                                         actionTxt = "Retour tâche"
-                                    ElseIf icDateCRE = Date() Then
-                                        If cVacation = "Jour" And Hour(Now) < 15 Then actionTxt = "Retour tâche"
-                                        If cVacation = "Soir" And Hour(Now) >= 15 Then actionTxt = "Retour tâche"
                                     End If
                                 End If
                             End If
@@ -1113,7 +995,7 @@
                                 If actionTxt = "Qualité" Then styleCouleur = "color:#8b5cf6; font-weight:bold;"
                                 If actionTxt = "IC pas signée" Then styleCouleur = "color:#64748b; font-weight:bold;"
                                 
-                                rowDataStr = currentAvis & "§<tr><td class='td-extract-select' style='display:none; text-align:center; padding:10px;'><input type='checkbox' class='chk-extract' style='cursor:pointer;'></td><td style='padding:10px; font-weight:bold;'> " & currentAvis & "</td><td style='padding:10px;'>" & cStatut & "</td><td style='padding:10px;'>" & currentCreator & "</td><td style='padding:10px;'>" & cDateDebut & "</td><td style='padding:10px;'>" & cVacation & "</td><td style='padding:10px; " & styleCouleur & "'><span style='" & styleCouleur & "'>" & actionTxt & "</span></td></tr>"
+                                rowDataStr = currentAvis & "§<tr><td class='td-extract-select' style='display:none; text-align:center; padding:10px;'><input type='checkbox' class='chk-extract' style='cursor:pointer;'></td><td style='padding:10px; font-weight:bold;'> " & currentAvis & "</td><td style='padding:10px;'>" & cStatut & "</td><td style='padding:10px;'>" & currentCreator & "</td><td style='padding:10px;'>" & cDateDebut & "</td><td style='padding:10px; " & styleCouleur & "'><span style='" & styleCouleur & "'>" & actionTxt & "</span></td></tr>"
                                 
                                 If countICs = 0 Then
                                     ReDim listICs(0)
@@ -1135,7 +1017,7 @@
                     For jSort = iSort + 1 To countICs - 1
                         avis1 = Split(listICs(iSort), "§")(0)
                         avis2 = Split(listICs(jSort), "§")(0)
-                        If CLng(avis1) > CLng(avis2) Then
+                        If avis1 > avis2 Then 
                             tempSort = listICs(iSort)
                             listICs(iSort) = listICs(jSort)
                             listICs(jSort) = tempSort
@@ -1152,8 +1034,11 @@
                 Exit Function
             End If
             
-            VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='16.66%'>Numéro</th><th width='16.66%'>Statut</th><th width='16.66%'>Créé par</th><th width='16.66%'>Date</th><th width='16.66%'>Vacation</th><th width='16.66%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
+            VBS_LancerSAP = "<table class='excel-table' id='tableExtractResults'><thead><tr><th id='thExtractSelect' width='5%' style='text-align:center; display:none;'><input type='checkbox' onclick='ToggleAllExtracts(this)'></th><th width='19%'>Numéro</th><th width='19%'>Statut</th><th width='19%'>Créé par</th><th width='19%'>Date</th><th width='19%'>Action</th></tr></thead><tbody>" & htmlResult & "</tbody></table>"
         End Function
+    </script>
+
+    <script language="javascript">
     // ==================== APPELS DIRECTS AUX FONCTIONS VBSCRIPT ====================
         var VERSION_ACTUELLE = "8.3";
         var LIEN_CONFIG_APP = "https://gist.githubusercontent.com/adrientrucexternal/16412138a02d05390dd14ed26afa80f2/raw/IcManager.txt";
