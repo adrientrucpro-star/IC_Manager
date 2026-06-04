@@ -1686,9 +1686,6 @@
             If Not fso.FolderExists(folderPath) Then
                 fso.CreateFolder folderPath
             End If
-            If Not fso.FolderExists(folderPath) Then
-                fso.CreateFolder folderPath
-            End If
 
             If fso.FileExists(exportPath) Then 
 
